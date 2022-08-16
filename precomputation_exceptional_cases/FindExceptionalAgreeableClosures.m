@@ -3,13 +3,14 @@
     After a classification, there are a finite number of j-invariants of a non-CM E/Q left to consider.
     This code is for computing the agreeable closure of the image of rho_E^*.
 
+    The data is saved to "../data-files/agreeable_closures_exceptional.dat"
+
 */
 
-// nohup /net/apps/magma_2.26-12/magma -t 32 "FindExceptionalAgreeableClosures.m" &
+// nohup /net/apps/magma-2.27-2/magma -t 32 "FindExceptionalAgreeableClosures.m" &
+// nohup magma -t 32 "FindExceptionalAgreeableClosures.m" &
 
 load "../main/FindOpenImage.m";
-
-total_time:=Cputime();
 
 jinvariants:=[j: j in known_exceptional_jinvariants];
 jinvariants:=Reverse(Sort(jinvariants));  // j-invariants we need to consider
@@ -93,11 +94,12 @@ for j in jinvariants do
     "j=",j;
 
     b,k,G:=FindAgreeableClosure(j : use_exceptional_data:=false);  
+    // NOTE: it is extremely vital to have "use_exceptional_data" set to false (otherwise we are computing from scratch)
     
     if b then  // Cases where we already know the agreeable closure
         G:=X[k]`G;
         assert IsAgreeable(G);
-        ExceptionalImages[j]:=G;
+        // ExceptionalImages[j]:=G;    // do not need to keep track of.
         continue j;
     else
         ExceptionalImages[j]:=G;
@@ -106,7 +108,7 @@ for j in jinvariants do
     // We start with a group G:=ExceptionalImages[j], viewed as an open subgroup of GL(2,Zhat) that
     // contains the scalars; it contains the image of rho_E^* for any non-CM elliptic curve E/Q with j-invariant j.
     // The group G has the additional property that its ell-adic projections agree with those of the image of 
-    // rho_E^* with the scalar matrices adjoined.     TODO:  RECHECK THIS!
+    // rho_E^* with the scalar matrices adjoined.     
     
     // We now, up to conjugacy in GL(2,Zhat), construct open subgroup of G that contain the image of rho_E^* and
     // the scalars.   Once computed we can find then find the agreeable closure of the image of rho_E^*.
@@ -185,12 +187,11 @@ for j in jinvariants do
                     smaller_group_found:=true;                                    
                     if #D ne 0 then  // When #D eq 0, we have provable showed that K=Q
                         "Warning: have candidate only; need to check directly", j;
-                        // TODO: recheck?
+                        // We have done these verifications as outlined in the paper.
                     end if;
             
                     G_new:=ChangeRing(H_,Integers(gl2Level(H_)));
                     ExceptionalImages[j]:=G_new;
-                    //#BaseRing(G_new); [Eltseq(a): a in Generators(G_new)];
                     
                     done:=true;
                     groups:=[ExceptionalImages[j]] cat groups;
@@ -210,7 +211,7 @@ for j in jinvariants do
     groups:=[H: H in groups | IsAgreeable(H)];
 
     if #groups eq 0 then
-        // This is the case where j is not exceptional at all!
+        // This is the case where j is not exceptional at all!!
         // Some maximal agreeable subgroups of an agreeable group have index 6 and are contained in a unique index 2 subgroup
         // (which is not agreeable).   If j came from a non-CM point of the corresponding degree 2 cover of our original modular
         // curve we marked it as exceptional for checking.
@@ -246,10 +247,11 @@ for j in Keys(ExceptionalImages) do
 	G0:=gl2Lift(G0,N);
 
 	if #G0/#G_ lt 1  then 
+        // case where j was not exceptional at all
 		k1:=X[k]`pi[1];
         assert X[k]`is_agreeable eq false and X[k1]`is_agreeable;
 
-        pts:=LiftQpoints(X[k1]`map_to_jline,{X[base]`C![j,1]});
+        pts:=LiftQpoints(X[k1]`map_to_jline[1],{X[base]`C![j,1]});
         pts:={Eltseq(P): P in pts};
         tuple:=[* j,true,k1,pts *]; tuple;
 	else
@@ -259,47 +261,10 @@ for j in Keys(ExceptionalImages) do
     S:=S cat [tuple];
 end for;
 
-// Write modular curves to a file.
+// Write data to a file.
 I:=Open("../data-files/agreeable_closures_exceptional.dat", "w");
 for y in S do
     WriteObject(I, y);
 end for;
 
 
-Cputime(total_time);
-
-/*
-// Write modular curves to a file.
-I:=Open("../data-files/exceptional_agreeable_closures.dat", "w");
-for j in Keys(ExceptionalImages) do
-	y:=ExceptionalImages[j];
-    WriteObject(I, j);
-    WriteObject(I, y);
-end for;
-*/
-
-/*
-I:=Open("../data-files/exceptional_agreeable_closures.dat", "r");
-ExceptionalImages:=AssociativeArray();
-repeat
-	b,j:=ReadObjectCheck(I);
-	if b then
-        b,y:=ReadObjectCheck(I);
-		ExceptionalImages[j]:=y;
-	end if;
-until not b;
-
-Keys(ExceptionalImages);
-*/
-
-/*
-ExceptionalAgreeableClosures:=[];
-I:=Open("../data-files/agreeable_closures_exceptional.dat", "r");
-ExceptionalImages:=AssociativeArray();
-repeat
-	b,y:=ReadObjectCheck(I);
-	if b then
-        ExceptionalAgreeableClosures:=ExceptionalAgreeableClosures cat [y];
-	end if;
-until not b;
-*/

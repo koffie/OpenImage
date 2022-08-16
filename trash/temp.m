@@ -1,3 +1,6 @@
+// We often like to not work with the rational point at infinity for P^1 or an elliptic curve E.
+// This code checks that these points can be ignored ....
+
 load "../main/FindOpenImage.m";
 
 for k in Keys(X) do
@@ -10,7 +13,7 @@ for k in Keys(X) do
             P:=X[k]`C![0,1,0];
         end if;
 
-        Q:=Eltseq(X[k]`map_to_jline(P));
+        Q:=Eltseq(X[k]`map_to_jline[1](P));
         if Q[2] eq 0 then continue k; end if;  //cusp
         j:=Q[1]/Q[2];
         if j in CM_jInvariants then continue k; end if;  //CM j-invariant
@@ -18,7 +21,7 @@ for k in Keys(X) do
         // these will be treated specially anyway
 
         _:=exists(base){k: k in Keys(X) | X[k]`degree eq 1};
-        S:=LiftQpoints(X[k]`map_to_jline,{X[base]`C![j,1]});
+        S:=LiftQpoints(X[k]`map_to_jline[1],{X[base]`C![j,1]});
 
         assert {Eltseq(a): a in S} ne {[1,0]};      
 

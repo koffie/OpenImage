@@ -64,26 +64,8 @@ f:=map<D->Q | pairs>;
 U:=GL(1,Integers(5180));
 gamma:=hom<U->Q | u:-> f(<gamma1(u),gamma2(u)>)>;
 
-
-
 U:=GL(1,Integers(5180));
 assert #U/#sub<U|[[3],[11],[13],[19]]> eq 1;
-
-/*
-for d in [3,11,13,19] do
-
-    assert exists(g){g: g in G | Determinant(g) eq d and iota(g) eq gamma([d]) };
-    g:=ChangeRing(g,Integers(5180));
-    d0:=Determinant(g);
-    g:=g*GL(2,Integers(5180))![1,0,0,d/d0];
-    
-    iota(g) eq gamma([d]) and Determinant(g) eq d;
-
-    assert GCD(Determinant(ChangeRing(g,Integers())),5180) eq 1;
-    Eltseq(g);
-    " ";
-end for;
-*/
 
 gens:=[[1,38,0,1],[1,1,37,38], [ 13, 0, 0, 2391 ],[ 64, 3737, 37, 2970 ],[ 70, 851, 37, 5038 ],[ 42, 1961, 37, 4318 ]];
 

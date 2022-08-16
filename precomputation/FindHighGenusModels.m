@@ -21,11 +21,11 @@ repeat
 	end if;
 until not b;
 for k in [k: k in Keys(X) | X[k]`genus le 1] do
-    X[k]`map_to_jline:=MapTojLine(X,k);
+    X[k]`map_to_jline:=[* MapTojLine(X,k) *];
 end for;
 
 
-total_time:=Cputime();
+total_time:=Realtime();
 
 
 keys:=[k: k in Keys(X) | X[k]`genus ge 2];  // looking at modular curves of higher genus
@@ -84,7 +84,7 @@ for i in [1..#keys] do
 
 end for;
 
-Cputime(total_time);
+Realtime(total_time);
 
 
 

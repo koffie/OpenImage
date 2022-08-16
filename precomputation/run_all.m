@@ -1,22 +1,23 @@
-// nohup /net/apps/magma_2.26-12/magma -t 32 "run_all.m" &
 
-global_time:=Cputime();
+// nohup /net/apps/magma-2.27-2/magma -t 32 "run_all.m" &
+
+
+global_time:=Realtime();
 
 load "FindUnentangledAgreeable.m";
+
 load "FindAgreeable.m";
 
 load "FindHighGenusModels.m";
 
 load "FindCommutatorInfo.m";
-load "FindAbelianCovers.m";
 
-load "ComputeFrobData.m";
-time PreComputationOfFrobData("../data-files/frob_data.dat",101);
+load "FindAbelianCovers.m";
 
 load "PointSearch.m";
 
-Cputime(global_time);
-"End.";
+Realtime(global_time);
+
 exit;
 
 

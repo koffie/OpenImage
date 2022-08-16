@@ -12,10 +12,10 @@ ModularCurveRec := recformat<
     gens, cusps, widths, regular, F, F0, f, trdet, pts, key, exceptional_jinvariants, Gc_decomp, high_genus_model, 
         cyclic_invariants, cyclic_models, cyclic_generators, cover_with_same_commutator_subgroup, psi :SeqEnum,   
     has_point, has_infinitely_many_points, has_nonCM_point, is_agreeable, is_entangled, extraneous, is_serre_type_model: BoolElt,                                                              
-    G, H, Hc, Gc :GrpMat,                          
+    G, H, Hc, Gc :GrpMat,    
+    Hc_gen: SeqEnum,                      
     C:Crv, 
-    map_to_jline: MapSch,    
-    pi :List,
+    map_to_jline, pi :List,
     sturm: FldRatElt >;	 
 
 /*                            
@@ -81,7 +81,8 @@ ModularCurveRec := recformat<
             - pi[1] will be a label for the modular curve X_B (in the array of modular forms we construct)
             - pi[2] will be a sequence of homogeneous polynomials describing the morphism 
               (with respect to the models given by the entries C and f)              
-    map_to_line: natural morphism from X_G to the j-line  (with respect to the model of X_G given by C and f)  
+    map_to_jline: natural morphism from X_G to the j-line  (with respect to the model of X_G given by C and f).  It is given as the single entry
+            of a list with type MapSch (this is done so we can save the records using WriteObject)  
 
     _______________________________________________________
     
@@ -93,6 +94,8 @@ ModularCurveRec := recformat<
         X_B so that G is conjugate to a subgroup of B with the commutator subgroups [G,G] and [B,B] agreeing.  We
         choose B, from our array, with minimal index in GL(2,Zhat).
     extraneous: boolean that is "true" when "cover_with_same_commutator_subgroup" is not the label of the curve X_G itself.
+    Hc_gen: a sequence consisting of matrices in SL(2,Z) (given as length four sequences); they topologically generated Hc
+        as an open subgroup of SL(2,Zhat).
 
     The following are only constructed when "extraneous" is false.
 
@@ -2087,7 +2090,7 @@ function FindCoverOfModularCurve(M0,M,prec : simplify_serre_type:=true)
                 return false, u^2-L!(d*P2), h;  // case where flag is false
             elif M0`genus eq 1 then
                 L<x,y>:=FunctionField(M0`C);
-                J:=M0`map_to_jline;
+                J:=M0`map_to_jline[1];
                 J:=J([x,y,1]);
                 J:=L!(J[1]/J[2]);
                 Pol<u>:=PolynomialRing(L);
@@ -2095,7 +2098,7 @@ function FindCoverOfModularCurve(M0,M,prec : simplify_serre_type:=true)
                 flag:=true;
             else
                 L<t>:=FunctionField(Rationals());
-                J:=M0`map_to_jline;
+                J:=M0`map_to_jline[1];
                 J:=J([t,1]);
                 J:=L!(J[1]/J[2]);
                 Pol<u>:=PolynomialRing(L);

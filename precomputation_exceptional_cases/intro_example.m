@@ -1,6 +1,6 @@
 // Some verifications for the "involved example" from the intro of the paper.
 
-load "FindOpenImage.m";
+load "../FindOpenImage.m";
 
 keys:=[k: k in Keys(X) | X[k]`N eq 27 and X[k]`genus eq 0];
 assert #keys eq 1;
@@ -13,7 +13,7 @@ assert X[k]`G eq G;
 assert X[k]`index eq 36;   
 
 F<t>:=FunctionField(Rationals());
-J:=(X[k]`map_to_jline)([t,1]);
+J:=(X[k]`map_to_jline[1])([t,1]);
 J:=J[1];
 assert J eq (t^3 + 3)^3 * (t^9 + 9*t^6 + 27*t^3 + 3)^3 / (t^3*(t^6 + 9*t^3 + 27));
 assert J-1728 eq (t^18 + 18*t^15 + 135*t^12 + 504*t^9 + 891*t^6 + 486*t^3 - 27)^2/ (t^3*(t^6 + 9*t^3 + 27));

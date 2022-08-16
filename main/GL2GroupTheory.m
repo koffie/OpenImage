@@ -177,6 +177,8 @@ function sl2Lift(H,m)
     return H1;
 end function;
 
+
+
 function gl2Lift(G,m)
     /* Input:
             G : a subgroup of GL(2,Z/nZ) for some n>1
@@ -205,8 +207,13 @@ function gl2Lift(G,m)
 
     m2:=m div m1;
     assert GCD([n,m2]) eq 1 and m1*m2 eq m;
-    gens2:=[Eltseq(g): g in Generators(GL(2,Integers(m2)))];
-    gens2:=[[Integers()!a: a in g]: g in gens2];
+
+    // We find a specific set of generators of GL(2,Z/m2Z)
+        U,iota:=UnitGroup(Integers(m2));
+        gens0:=[Integers()!iota(U.i) : i in [1..Ngens(U)]];
+    gens2:=[[1,1,0,1],[0,-1,1,0]] cat [[a,0,0,1]: a in gens0];
+    //gens2:=[Eltseq(g): g in Generators(GL(2,Integers(m2)))];
+    //gens2:=[[Integers()!a: a in g]: g in gens2];
 
     gens:=[ [CRT([a[1],1],[m1,m2]), CRT([a[2],0],[m1,m2]), 
              CRT([a[3],0],[m1,m2]), CRT([a[4],1],[m1,m2])]  : a in gens1] cat
@@ -299,6 +306,7 @@ function FindCommutatorSubgroup(G)
 
     return M, gens, index; 
 end function;
+
 
 function IndexOfCommutator(G)
     /*  The group G is a subgroup of GL(2,Z/NZ) with N>1 that we can idenitify with an open subgroup of GL(2,Zhat). 

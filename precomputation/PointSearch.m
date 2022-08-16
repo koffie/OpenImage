@@ -7,7 +7,7 @@ CM_jInvariants:={0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -3276
 
 // set will contain all exceptional j-invariants we find.
 Jnew:={};
-total_time:=Cputime();
+total_time:=Realtime();
 
 // add known j-invariants arising from non-CM points on modular curves of prime power level
 // (these are from the paper of Rouse-Sutherland-(Zureick-Brown))
@@ -42,10 +42,11 @@ Jnew := Jnew join { r[2] : r in exceptionaljs };
 // We now check points of small height on modular curves of genus 1 with infinitely many points
 keys1:=[k:k in Keys(X) | X[k]`genus eq 1 and X[k]`has_infinitely_many_points];
 
-bound :=15; //20;  // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
+bound :=20;  // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
 
 for k in keys1 do
-    jmap:=X[k]`map_to_jline;
+    k;
+    jmap:=X[k]`map_to_jline[1];
 
     A,f:=MordellWeilGroup(X[k]`C);
     torsion:={f(a): a in TorsionSubgroup(A)};
@@ -62,7 +63,7 @@ for k in keys1 do
     js:={jmap(P): P in pts};
     js:={j[1]/j[2]: j in js | j[2] ne 0} diff CM_jInvariants;
     for j in js do        
-        b:=FindAgreeableClosure(j : assume_uniformity_conjecture:=true);
+        b:=FindAgreeableClosure(j : assume_uniformity_conjecture:=true, use_exceptional_data:=false);
         if b eq false and j notin Jnew then
             //"Found point that needs to be considered separately", j;
             Jnew:=Jnew join {j};
@@ -77,7 +78,7 @@ keys:=[k:k in Keys(X) | X[k]`genus eq 1 and X[k]`has_infinitely_many_points eq f
 for k in keys do
     A,f:=MordellWeilGroup(X[k]`C);
     assert Rank(X[k]`C) eq 0;
-    jmap:=X[k]`map_to_jline;
+    jmap:=X[k]`map_to_jline[1];
     J:={jmap(f(a)) : a in A};
     J:={P[1]/P[2]: P in J | P[2] ne 0} diff CM_jInvariants;
     Jnew:=Jnew join J;
@@ -87,14 +88,16 @@ end for;
 "Step 2: Look at points of small height on genus 0 modular curves";
 // Check points of small height on modular curves of genus 0 with infinitely many points
 keys0:=[k:k in Keys(X) | X[k]`genus eq 0 and X[k]`has_infinitely_many_points];
-n:=12; //15; // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
+n:=15; // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
 low_height_pts_on_P1:={[a,b]: a in [-n..n], b in [1..n]} join {[1,0]};
+
 for k in keys0 do
-    jmap:=X[k]`map_to_jline;
-    for P in low_height_pts_on_P1 do
+    k;
+    jmap:=X[k]`map_to_jline[1];
+    for P in low_height_pts_on_P1 do        
         j:=jmap(X[k]`C!P);
         if j[2] ne 0 and j[1]/j[2] notin CM_jInvariants then
-            b:=FindAgreeableClosure(j[1]/j[2] : assume_uniformity_conjecture:=true);
+            b:=FindAgreeableClosure(j[1]/j[2] : assume_uniformity_conjecture:=true, use_exceptional_data:=false);
             if b eq false then
                 Jnew:=Jnew join {j[1]/j[2]};
             end if;            
@@ -131,10 +134,10 @@ for k in keys do
             end if;
         until p+1 gt 2*X[k]`genus*Sqrt(p) and p gt Maximum(PrimeDivisors(X[k]`N));
             
-        S:=Points(C: Bound:=10^4);  //10^5 // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
+        S:=Points(C: Bound:=10^5);  //10^5 // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
         assert PointsAtInfinity(C) subset S;
        
-        J:=X[b]`map_to_jline;
+        J:=X[b]`map_to_jline[1];
         S:={J([P[1],P[3]]): P in S};
         S:={P[1]/P[2]: P in S | P[2] ne 0 and P[1]/P[2] notin CM_jInvariants};
         Jnew:=Jnew join S;
@@ -158,10 +161,10 @@ for k in keys do
             // they are singular points of our current model and have already been found.
         end if;
         
-        pts:=PointSearch(C,10^4); // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
+        pts:=PointSearch(C,10^5); // THIS QUANTITY CAN BE INCREASED TO LOOK FOR MORE POINTS (BUT IT TAKES LONGER)
         S:=S join {[P[1],1]: P in pts};
 
-        S:={X[b]`map_to_jline(P): P in S};
+        S:={(X[b]`map_to_jline[1])(P): P in S};
         S:={P[1]/P[2]: P in S | P[2] ne 0 and P[1]/P[2] notin CM_jInvariants};
         S:=S diff Jnew;
         J0:=S;
@@ -197,7 +200,7 @@ for k in keys do
 
 	assert X[b]`has_infinitely_many_points;
     assert X[k]`is_serre_type_model eq false;
-    jmap:=X[b]`map_to_jline;
+    jmap:=X[b]`map_to_jline[1];
 
 	L<t>:=PolynomialRing(Rationals());
     Pol<u>:=PolynomialRing(L);
@@ -264,7 +267,7 @@ for k in keys do
 	P0:=[ Evaluate(P0[2*i-1],[x,y,1])/Evaluate(P0[2*i],[x,y,1]) : i in [1..#P0 div 2] ];
 	if  X[k]`is_serre_type_model then   
 		assert #P0 eq 3 and P0[2] eq 0;
-		J:=(X[b]`map_to_jline)([x,y,1]);
+		J:=(X[b]`map_to_jline[1])([x,y,1]);
 		J:=J[1]/J[2];
 		P0[1]:=P0[1] * (J-1728);
 	end if;
@@ -285,7 +288,7 @@ for k in keys do
     support:=support join {X[b]`C!0};
 
 	for p0 in support do
-		Q:=X[b]`map_to_jline(p0);
+		Q:=(X[b]`map_to_jline[1])(p0);
 		if Q[2] eq 0 or Q[1]/Q[2] in CM_jInvariants then 
             continue p0; // only interested in non-CM points
         end if; 
@@ -327,7 +330,7 @@ for k in keys do
             assert &and[Denominator(f) eq 1 : f in models];
             models:=[Pol!f: f in models];
             R:=[r[1]: r in Roots(GCD([Pol!Numerator(f): f in models]))];            
-            J:={X[k]`map_to_jline([r,1]) : r in R};
+            J:={(X[k]`map_to_jline[1])([r,1]) : r in R};
             J:={j[1]/j[2]: j in J | j[2] ne 0} diff CM_jInvariants;
             J:=J diff Jnew;
             if J ne {} then
@@ -340,7 +343,7 @@ for k in keys do
             models_:=[L!f: f in models];
             assert &and[c ne 0: c in models_];
             S:=&meet[ {RepresentativePoint(p0): p0 in Support(Divisor(c)) | Degree(p0) eq 1 } : c in models_];
-            J:={X[k]`map_to_jline(p0): p0 in S};
+            J:={(X[k]`map_to_jline[1])(p0): p0 in S};
             J:={j[1]/j[2]: j in J | j[2] ne 0} diff CM_jInvariants;
             J:=J diff Jnew;
             if J ne {} then
@@ -348,7 +351,7 @@ for k in keys do
             end if;            
 
             S:=&join[ {RepresentativePoint(p0): p0 in Support(Divisor(c)) | Degree(p0) eq 1 and Valuation(c,p0) lt 0 } : c in models_];
-            J:={X[k]`map_to_jline(p0): p0 in S};
+            J:={(X[k]`map_to_jline[1])(p0): p0 in S};
             J:={j[1]/j[2]: j in J | j[2] ne 0} diff CM_jInvariants;
             J:=J diff Jnew;            
             if J ne {} then
@@ -359,8 +362,9 @@ for k in keys do
     end for;
 end for;
 
+// Checks if all the exceptional j-invariants found have already been taken into account!
+assert Jnew subset known_exceptional_jinvariants;
 
-
-Cputime(total_time);
+Realtime(total_time);
 
 

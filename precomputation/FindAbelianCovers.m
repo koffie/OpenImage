@@ -44,7 +44,7 @@ repeat
 until not b;
 for k in Keys(X) do
     if X[k]`genus le 1 then
-        X[k]`map_to_jline:=MapTojLine(X,k);
+        X[k]`map_to_jline:=[*MapTojLine(X,k)*];
     end if;
 end for;
 
@@ -194,13 +194,15 @@ for k in keys do
                 K<t>:=FunctionField(Integers());
                 u:= K!FindRelationRationalBruteForce(X[k],r);
 
-                J:=Eltseq(X[k]`map_to_jline([t,1]));
+                J0:=X[k]`map_to_jline[1];
+                J:=Eltseq(J0([t,1]));
                 J:=K!(J[1]/J[2]);                    
                 u:=J*u;
             else
                 K<x,y>:=FunctionField(X[k]`C);
                 u:= K!FindRelationEllipticBruteForce(X[k],r);
-                J:=Eltseq(X[k]`map_to_jline([x,y,1]));
+                J0:=X[k]`map_to_jline[1];
+                J:=Eltseq(J0([x,y,1]));
                 J:=K!(J[1]/J[2]);                    
                 u:=J*u;
             end if;

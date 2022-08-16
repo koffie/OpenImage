@@ -87,7 +87,7 @@
     P:=[2,3,5,7,11,13,17,19,37];  // The small primes we will keep track of.
     base:=["1A0-1a": p in P];     // label for the j-line
 
-    total_time:=Cputime();
+    total_time:=Realtime();
 
     // array for our modular curves
     X:=AssociativeArray();
@@ -120,7 +120,7 @@
         for a in S do
             " "; 
             "a=",a;
-            time0:=Cputime();
+            time0:=Realtime();
             ToDo:=ToDo diff {a};
             Done:=Done join {a};
 
@@ -242,7 +242,7 @@
             end if;
 
             X[a]:=M;  // Add the modular curve to our array (for now)    
-            X[a]`map_to_jline:=MapTojLine(X,a);  // Morphism to j-line
+            X[a]`map_to_jline:=[* MapTojLine(X,a) *];  // Morphism to j-line
 
             // Check if X[a] has a non-CM rational point.
             if X[a]`has_infinitely_many_points then
@@ -255,7 +255,7 @@
                 A,f:=MordellWeilGroup(E);
                 S:={f(a): a in A};
                 
-                J:=X[a]`map_to_jline;
+                J:=X[a]`map_to_jline[1];
                 S:={J(P): P in S};
                 S:={P[1]/P[2] : P in S | P[2] ne 0};  // remove cusp
                 CM_jInvariants:={0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -32768, 
@@ -271,6 +271,7 @@
                 continue a;
             end if;
                
+
             // If the modular curve has infinitely many rational points, we need to consider smaller groups.  Add them to "ToDo".
             if X[a]`has_infinitely_many_points then
                 for i in [1..#P] do
@@ -283,7 +284,7 @@
                 end for;                 
             end if;
         
-            print "time=",Cputime(time0);
+            print "time=",Realtime(time0);
         end for;
         ToDo:=ToDo diff Done;  
         
@@ -300,7 +301,8 @@
     end for;
 
 
-    Cputime(total_time);
+    Realtime(total_time);
+    
 
 
     // Write modular curves found so far to a file.

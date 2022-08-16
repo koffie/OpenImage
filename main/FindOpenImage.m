@@ -3,33 +3,31 @@
     is a representation rho_E: Gal_Q -> GL(2,Zhat).
 
     This files contains a function "FindOpenImage".   For E/Q given by a Weierstrass equation,
-    FindOpenImage(E) returns the group G that is the image of rho_E up to conjugacy in GL(2,Zhat).
-
-    The group G is given by its image in GL(2,Z/NZ), where N is a positive integer that is divisible by
-    the level of G in GL(2,Zhat).
-
-    [ Return results are proven correct.  Trying increasing the parameter "Bound" in the unlikely 
+    FindOpenImage(E) returns the following:
+        - a group G that is the image of rho_E up to conjugacy in GL(2,Zhat); it is given by its image in GL(2,Z/NZ)
+          where N is divisible by the level of G in GL(2,Zhat)
+        - the index of G in GL(2,Zhat)
+        - the intersection of G with SL(2,Zhat) given as a subgroup of SL(2,Z/MZ) with M>0 minimal.
+        
+    [ Return results are proven correct.  Trying increasing the extra parameter "Bound" in the unlikely 
     case that an error arises since the image could not be determined.   The function will always 
     return an error if E happens to come from a rational point on a high genus modular curve that we missed. ]
 */
 
 
 
-
-"Loading functions and data; this may take a bit.";
-
-load "../precomputation/ComputeFrobData.m";  // Loads all functions we need.
+load "../precomputation/ComputeFrobData.m";  // Loads all functions we need (may take a bit!)
 // In particular, this loads an array X consisting of modular curves corresponding to certain agreeable subgroups of GL(2,Zhat).
 // Except for a (conjecturally) finite number of j-invariants, they encode enough info to determine the Galois images of 
 // non-CM elliptic curves E/Q.
 
-base:= [k: k in Keys(X) | X[k]`N eq 1][1]; //label of j-line, group GL(2,Zhat).
+base:= [k: k in Keys(X) | X[k]`N eq 1][1]; //label of the j-line, equivalently, the group GL(2,Zhat).
 
-// j-invariants of CM elliptic curves E/Q
+// j-invariants of all CM elliptic curves over Q
 CM_jInvariants:={0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -32768, -884736, -884736000, -147197952000, -262537412640768000};
 
 // Sets of j-invariants of non-CM elliptic curves over Q that require special attention 
-// (for example if they come from a rational points of a modular curve with only finite many rational points)
+// (for example if they come from a rational points of a certain modular curve with only finite many rational points).
 known_exceptional_jinvariants:=
 { -162677523113838677, -6357235796156406771/32768, -92515041526500, 
 -23788477376, -1815478272, -189613868625/128, -1273201875, -297756989/2, 
@@ -59,7 +57,7 @@ known_exceptional_jinvariants:=
 
 
 // Information on the (known/only?) j-invariants of non-CM E/Q arising from modular curves of prime power level 
-// and genus at least 2 [from paper of Rouse-Sutherland-(Zureick-Brown)]
+// and genus at least 2 [from the paper of Rouse-Sutherland-(Zureick-Brown)]
 exceptionaljs := [
 <2, -2^18*3*5^3*13^3*41^3*107^3/17^16, 16, [[7,9,7,14], [5,6,1,11], [3,13,10,13]], "16.64.2.1">,
 <2, -2^21*3^3*5^3*7*13^3*23^3*41^3*179^3*409^3/79^16, 16, [[7,9,7,14], [5,6,1,11], [3,13,10,13]], "16.64.2.1">,
@@ -86,7 +84,7 @@ elladic_exceptionaljs := { r[2] : r in exceptionaljs };
 assert elladic_exceptionaljs subset known_exceptional_jinvariants;
 
 
-//keep track of our modular curves with prime power level and genus at most 1
+//array for keeping track of our modular curves with prime power level and genus at most 1
 agreeable_groups_prime_power_level:=AssociativeArray();
 P:=[2,3,5,7,11,13];
 for ell in P do
@@ -98,7 +96,7 @@ end for;
 // "agreeable_groups_prime_power_level[ell]"  keeps track of modular curves with level a power of ell,
 // ordered by increasing degree over the j-line.
 
-// Keep track of our modular curves that arise from "unentangled" groups and having infinitely many rational points
+// array for keeping track of our modular curves that arise from "unentangled" groups and having infinitely many rational points
 unentangled_groups:=AssociativeArray();
 keys0:=[k: k in Keys(X) | X[k]`genus le 1 and X[k]`has_infinitely_many_points and X[k]`is_entangled eq false];
 for k in keys0 do
@@ -143,7 +141,6 @@ end for;
 // Load agreeable closure info for exceptional j-invariants
 ExceptionalAgreeableClosures:=[];
 I:=Open("../data-files/agreeable_closures_exceptional.dat", "r");
-ExceptionalImages:=AssociativeArray();
 repeat
 	b,y:=ReadObjectCheck(I);
 	if b then
@@ -151,7 +148,20 @@ repeat
 	end if;
 until not b;
 
+// Load Galois image info for exceptional j-invariants
+ExceptionalImages:=[];
+I:=Open("../data-files/exceptional_images.dat", "r");
+repeat
+	b,y:=ReadObjectCheck(I);
+	if b then
+        ExceptionalImages:=ExceptionalImages cat [y];
+	end if;
+until not b;
+
+
 //--------------------------------------------
+
+
 
 
 function OpenImageOfTwist(E,G,d)
@@ -165,26 +175,33 @@ function OpenImageOfTwist(E,G,d)
     */
 
     // We may take d to be a squarefree integer
-    d:=Numerator(d)*Denominator(d)^2;
-    d:=Sign(d)*&*([p: p in PrimeDivisors(d) | Valuation(d,p) mod 2 eq 1] cat [1]);
+    d1:=Numerator(d);
+    d1:=Sign(d1) * &*([1] cat [p: p in PrimeDivisors(d1) | IsOdd(Valuation(d1,p))]);
+    d2:=Denominator(d);
+    d2:=Sign(d2) * &*([1] cat [p: p in PrimeDivisors(d2) | IsOdd(Valuation(d2,p))]);
+
+    d:=d1*d2;
+
+    // Quadratic twist is isomorphic to E
     if d eq 1 then return G; end if;
 
-    chi:=KroneckerCharacter(d);
+    // Conductor of character KroneckerCharacter(d, )
+    if d mod 4 eq 1 then cond:=d; else  cond:=4*d; end if;
 
-    N:=LCM(Conductor(chi),#BaseRing(G));
+    N:=LCM(cond,#BaseRing(G));
     G:=gl2Lift(G,N);
 
     gens:={};
     for g in Generators(G) do
-        e:=chi(Integers()!Determinant(g));  
+        e:=KroneckerSymbol(d, Integers()!Determinant(g) );  
         assert e in {1,-1};
         if e eq 1 then
-            g_:=g;
+            gens:=gens join {g};
         else
-            g_:=-g;
-        end if;
-        gens:=gens join {g_};
+            gens:=gens join {-g};
+        end if;      
     end for;
+
     G_:=sub<GL(2,Integers(N))| gens>;
     return G_;
 end function;
@@ -276,26 +293,80 @@ end function;
 function LiftQpoints(phi,S)
     /*
         Input:  
-            phi: a morphism C'->C between curves over Q
+            phi: a nonconstant morphism C'->C between curves over Q
             S  : a set of rational points on C
         Output:
             The set of rational points P in C'(Q) which phi(P) in S.
+
+
+        Remark:  Equivalently, we are looking for rational points on the Q-schemes Z:=phi^(-1)(P) with P in S.
+            For most cases, we use "Points(Z)" to find these points.  The exception is in the important special cases
+            where C' is P^1 or an elliptic curve; in these cases we reduce finding rational points to finding the 
+            roots of a single polynomial in Q[x] (this turns out to be significantly faster when implemented).
     */
+
     C0:=Codomain(phi);
     C1:=Domain(phi);   
+    // phi: C1 -> C0
+
+    Pol<t>:=PolynomialRing(Rationals());
+
     S:={C0!P:P in S}; 
     S1:={};
     for P in S do
+
         Z:=Pullback(phi,P);
         assert Type(Z) in {MakeType("Pt"), MakeType("Sch")};
-        if Type(Z) eq MakeType("Pt") then 
+        if Type(Z) eq MakeType("Pt") then         
             S1:=S1 join {Z};
         else
-            S1:= S1 join Points(Z);
+            pol:=DefiningPolynomials(Z);
+
+            if Genus(C1) eq 0 and DefiningPolynomials(C1) eq [] and #pol eq 1 then
+                // In the case where C1 is the projective line, we can find the rational points on Z
+                // by finding the roots of a polynomial (this is faster than using Points(Z))
+                f:=pol[1];                
+                S0:={ C1![r[1],1] : r in Roots( Evaluate(f,[t,1]) ) };
+                if Evaluate(f,[1,0]) eq 0 then
+                    S0:=S0 join { C1![1,0] };
+                end if;
+              
+            elif Genus(C1) eq 1 and Type(C1) eq MakeType("CrvEll") then
+                //In this case, C1 is an elliptic curve given by a Weierstrass equation.
+                F<x>:=FunctionField(Rationals());
+                PolY<y>:=PolynomialRing(F);
+                RR:=quo<PolY | [ PolY!Evaluate(g,[x,y,1]): g in DefiningPolynomials(C1)]>;
+
+                gg:=[];
+                for f0 in pol do
+                    f:=Evaluate(f0,[x,y,1]);             
+                    a:=aInvariants(C1);
+                    fc:=Evaluate(f,-y-a[1]*x-a[3]);   // using negation on E
+                    g:=F!(RR!(f*fc));   // Polynomial in Q[x]                    
+                    assert Denominator(g) eq 1;
+                    gg:=gg cat [Numerator(g)];
+                end for;
+
+                // Now find a finite set of points that contains Z(Q).
+                R0:={r[1] : r in Roots(GCD(gg))};
+                f:=DefiningPolynomial(C1);
+                S0:={C1![0,1,0]};
+                for r in R0 do
+                    S0:=S0 join {C1![r,y[1],1]: y in Roots(Evaluate(f,[r,t,1]))};
+                end for;
+                // Check which are actually in Z(Q)
+                S0:={P: P in S0 | &and[Evaluate(f,Eltseq(P)) eq 0: f in pol]};
+            else
+                S0:=Points(Z);
+            end if;
+
+            S1:= S1 join S0;        
         end if;
     end for;
+
     S1:={C1!P: P in S1};
     S1:={P: P in S1 | phi(P) in S};
+
     return S1;
 end function;
 
@@ -320,7 +391,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
             many rational points (the group G0 is our best guess for G using the modular curves we have computed).   In this case, we also return
             the group G.
             [When "use_exceptional_data" is set to false, we return G0 instead and there may be a finite number of cases where b is wrongly
-             false. The main use of this is for our computation of G that we do elsewhere.]  
+             false. The main use of this is for our computation of exceptional G that we did in the precomputation.]  
 
 
         If the parameter "minimal" is false and b is true, we instead return the label for a larger agreeable group G that has 
@@ -335,11 +406,10 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
         longer requires factoring integers.
     */
 
-    if j in known_exceptional_jinvariants and use_exceptional_data then
+    if use_exceptional_data and (j in known_exceptional_jinvariants and j in {t[1]: t in ExceptionalAgreeableClosures}) then
         assert exists(t){t: t in ExceptionalAgreeableClosures | t[1] eq j};
         return t[2], t[3], t[4];
     end if;
-
 
     assert j notin CM_jInvariants;  // j should be the j-invariant of a non-CM curve
     
@@ -372,7 +442,6 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
     _:=exists(base){k: k in Keys(X) | X[k]`degree eq 1}; // find label "base" for j-line
 
     // array for keeping track of rational points above j on our modular curves
-   
     Qpoints_above_j:=AssociativeArray();
     Qpoints_above_j[base]:={X[base]`C![j,1]};  // the point [j,1] on the j-line
 
@@ -400,6 +469,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
 
             // In some cases, the traces of frobenius will quickly rule out rational points
             N:=X[k]`N;
+            
             for b in trace_of_frobenius_E do
                 p:=b[1]; if p eq ell or N mod p eq 0 then continue b; end if;
                 a:=b[2];                
@@ -421,8 +491,8 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
                 pts:={};
                 e:=0;
                 repeat
-                    Q1:=X[k]`map_to_jline( e*P0 );
-                    Q2:=X[k]`map_to_jline(-e*P0 );
+                    Q1:=(X[k]`map_to_jline[1])( e*P0 );
+                    Q2:=(X[k]`map_to_jline[1])(-e*P0 );
                     if j eq Q1[1]/Q1[2] then                        
                         pts:=pts join {e*P0};
                     elif j eq Q2[1]/Q2[2] then
@@ -444,6 +514,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
 
         end for;
     end for;
+
 
     // We now compute the label "label" of a minimal unentangled agreeable subgroup of GL(2,Zhat) whose ell-adic projections
     // give modular curves of genus at most 1 and contains G_E where E/Q has j-invariant j.
@@ -671,6 +742,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
             [99,85], [99,84], [99,74], [99,73], [99,72], [99,79], [99,76], [99,65], [99,68] }];
     end if;
     
+
     for i in [1..#level] do
         p:=3;
         done:=false;
@@ -697,8 +769,6 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
         until done;
     end for;
     
-
-
     // For the smallest unentangled agreeable group, if the corresponding modular curve has only finitely many rational points,
     // then this needs to be dealt with by hand (only finitely many j have this issue!)
 
@@ -719,8 +789,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
         G:=&meet Gs;    
         return false, label, G;
     end if;    
-    
-    
+      
     // We compute the rational points on the modular curve X[label] over j. 
     keys:=[label];
     k:=label;
@@ -738,7 +807,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
     end for;
     assert label in Keys(X);
     assert label in Keys(Qpoints_above_j);
-
+ 
 
     // Now compute the agreeable closure of G_E.  
     // We have already determined the ell-adic projections of the agreeable closure.
@@ -794,14 +863,16 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
                 assert not X[k]`is_serre_type_model;
                 Qpoints_above_j[k]:={};
                 for p0 in Qpoints_above_j[b] do
-                    if p0[2] eq 0 then continue p0; end if;  //these points have been dealt with separately //TODO
+                    if p0[2] eq 0 then continue p0; end if;  // These points have been dealt with separately in a precomputation.
                     t0:=p0[1]/p0[2];
                     c:=[Evaluate(a,t0): a in P0];
                     pol:=&+[c[i]*w^(i-1): i in [1..#c]];
 
-                    if HasRoot(pol) and IsSeparable(pol) then         // TODO: separable dealt with elsewhere
+                    if HasRoot(pol) and IsSeparable(pol) then          
                             Qpoints_above_j[k]:=Qpoints_above_j[k] join {[0]}; // we don't remember the actual point since we don't need it                        
                     end if;
+                    // Note: we worked out all cases where pol could be separable (in a precomputation) and added them to 
+                    // "known_exceptional_jinvariants", if applicable, for separate study.
                 end for;
             end if;
 
@@ -835,7 +906,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
 
     // Find points on X[k] above j-invariant j
     if k notin Keys(Qpoints_above_j) then
-        phi:=X[k]`map_to_jline;
+        phi:=X[k]`map_to_jline[1];
         S:=LiftQpoints(phi,{X[base]`C![j,1]});  
     else
         S:=Qpoints_above_j[k];
@@ -882,7 +953,12 @@ function ComputeGammaE(k,u,E)
 
     //Check u and E are compatible
     j:=jInvariant(E);
-    assert [j,1] eq Eltseq(X[k]`map_to_jline(u));
+    if [j,1] ne Eltseq((X[k]`map_to_jline[1])(u)) then
+        E;
+        j;
+        Eltseq((X[k]`map_to_jline[1])(u));
+        assert false;
+    end if;
 
     // replace the point u by a corresponding sequence of relatively prime integers.
     u:=Eltseq(u);
@@ -892,10 +968,12 @@ function ComputeGammaE(k,u,E)
     c:=GCD(u);
     u:=[a div c : a in u];
 
+
     A<[sigma]>:=AbelianGroup(X[k]`cyclic_invariants);
     Gamma:=[];
       
     M_seq:=[]; UM_seq:=[]; iota_seq:=[];
+
 
     for i in [1..#X[k]`Gc_decomp] do
         H:=X[k]`Gc_decomp[i];    
@@ -904,12 +982,13 @@ function ComputeGammaE(k,u,E)
 
         if ContainsMinusI eq false then
             Ej:=EllipticCurve([-27*j*(j-1728),54*j*(j-1728)^2]);                    
-            _,d:=IsQuadraticTwist(E,Ej);
-            num:=Numerator(d);
-            den:=Denominator(d);
-            d:=Sign(d)*&*([p: p in PrimeDivisors(num) cat PrimeDivisors(den) | Valuation(d,p) mod 2 eq 1 ] cat [1]);
-            // E is the quadratic twist of Ej by the integer d
-            chi:=KroneckerCharacter(d);            
+
+            // We find the squarefree integer d for which Ej is the quadratic twist of E by d.
+            _,d1:=IsQuadraticTwist(E,Ej);
+            d1:=Numerator(d1)*Denominator(d1);
+            P_Ej:=Set(PrimeDivisors(GCD(Numerator(j),d1))) join Set(PrimeDivisors(GCD(Numerator(j-1728),d1))) join Set(PrimeDivisors(GCD(Denominator(j),d1)));
+            d:=Sign(d1) * &*([1] cat [p: p in P_Ej | IsOdd(Valuation(d1,p)) ]);
+            assert IsSquare(d*d1);
         end if;
 
         // We are going to construct a homomorphism from the group Z_L^*/(Z_L^*)^e.
@@ -962,7 +1041,7 @@ function ComputeGammaE(k,u,E)
                 end if;
             elif p gt prime_bound and not done then
                 // Computes extra values if the precomputed Frobenius data is insuffcient.
-                "Extra comp",p;
+                //"Extra comp",p; //TODO
 
                 s:=ComputeFrobData(k,i, p : pt:=u_); 
                 if #s ne 0 then
@@ -971,7 +1050,7 @@ function ComputeGammaE(k,u,E)
                 end if;
             end if;
 
-            if good_p and not ContainsMinusI and chi(p) eq -1 then 
+            if good_p and not ContainsMinusI and KroneckerSymbol(d, p ) eq -1 then 
                 f:=(f + (e div 2)) mod e;  
             end if;
 
@@ -1004,8 +1083,8 @@ function ComputeGammaE(k,u,E)
         iota_seq:=iota_seq cat [iotaM];
 
         Gamma:=Gamma cat [gamma];
-
     end for;
+
 
     // Add to get a single homomorphism gamma
     M:=LCM(M_seq);
@@ -1023,8 +1102,8 @@ function ComputeGammaE(k,u,E)
     Gamma:=Gamma_;
 
     gamma:=hom<UM->A | [  &+[gamma(UM.i): gamma in Gamma] : i in [1..Ngens(UM)]]  >;
+    // memory leak?
     
-
     // We have a homomorphism gamma:(Z/MZ)^*->A.  
     // We now replace M by a proper divisor so the kernel of gamma has level M.
     ker_gamma:=Kernel(gamma);  // subgroup of (Z/M)^*
@@ -1056,8 +1135,8 @@ end function;
 
 
 
-function ComputeHE(k,u,E)
-
+function ComputeHEGenerators(k,u,E: d0:=0)
+    
     /* 
         Input: 
             - a key k of our array X of modular curves corresponding to an open subgroup G of GL(2,Zhat).
@@ -1074,30 +1153,43 @@ function ComputeHE(k,u,E)
         see the paper for details.   Let HE be the subgroup of g in G such that g*Gc = gamma_E(det(g)); it is an open
         subgroup of GL(2,Zhat) with full determinant.
 
-        Output: the group HE; given by its image in GL(2,Z/NZ) where N is divisible by the level of HE.
+        Output: 
+            - an integer N divisible by the level of HE,
+            - a sequence of generators of the group HE; given by its image in GL(2,Z/NZ) where N is divisible by the level of HE.
+              The sequence starts with generators of HE intersected with SL(2,Zhat).
         
+        [If d0 is set to be a nonzero integer, which should be relatively prime to N, then instead an element of HE 
+        with determinant d0 is returned. The groups get so large that this will be faster than just searching for elements in HE directly.]
+
     */
 
+    
     N:=#BaseRing(X[k]`Gc);
     if X[k]`N eq 1 then
         G:=GL(2,Integers(N));
     else
         G:=gl2Lift(X[k]`G,N);
     end if;
-    
+
+    if G eq X[k]`Gc then  // in this case, we must have gamma_E=1
+        if d0 ne 0 then
+            assert exists(g){g: g in G | Determinant(g) eq d0};
+            return g;
+        end if;        
+        return #BaseRing(G), [G.i: i in [1..Ngens(G)]]; 
+    end if;
+
+
     A<[sigma]>:=AbelianGroup(X[k]`cyclic_invariants);
 
     M,gamma_pairs:=ComputeGammaE(k,u,E);
+
     UM,iotaM:=UnitGroup(Integers(M));
-
-    //UM eq sub<UM|[a[1] @@ iotaM : a in gamma_pairs]>;
-
-
-
     FA:=FreeAbelianGroup(#gamma_pairs); 
     iota:=hom<FA->UM | [a[1] @@ iotaM: a in gamma_pairs]>;
     gamma_:=hom<FA->A | [A!a[2]: a in gamma_pairs]>;
     gamma :=hom<UM->A | [gamma_(UM.i @@ iota) : i in [1..Ngens(UM)]]>;
+
     assert &and [gamma(gamma_pairs[j][1] @@ iotaM) eq A!gamma_pairs[j][2] : j in [1..#gamma_pairs]];
 
     //    We have an isomorphism A -> G/Gc that takes the standard basis to cosets represented by the sequence X[k]`cyclic_generators.
@@ -1119,30 +1211,30 @@ function ComputeHE(k,u,E)
     assert Image(psi) eq A;
     f_A:=map<A->SL(2,Integers()) | [<a,LiftMatrix(a @@ psi,1)>: a in A]>;  
    
+   
+
+    UN,iotaN:=UnitGroup(Integers(N));  
+    T:=Transversal(X[k]`Gc, sl2Lift(X[k]`Hc,#BaseRing(X[k]`Gc)));  // Note: Could precompute this if it is slow.
+    assert #T eq #UN;
+    // The function xi: (Z/N)^* -> Gc maps each d to a matrix in Gc with determinant d.
+    xi:=map<{iotaN(d): d in UN}-> Parent([1]) | [<Determinant(t),[Integers()!a: a in Eltseq(t)]>: t in T]>;  
+    // Note:  Could precompute this if it is slow.
+
      
     // ****** We can finally compute the image GE of rho_E^*, up to conjugacy, in GL(2,Zhat) *****
    
-    N_:=LCM(N,M);   // The level of GE will divide N_; we will give GE by its image modulo N_
+    N_:=LCM([N,M]);   // The level of GE will divide N_; we will give GE by its image modulo N_
 
     UN_,iotaN_:=UnitGroup(Integers(N_));
     GL2:=GL(2,Integers(N_));
     
-    S_:=sl2Lift(X[k]`Gc meet SL(2,Integers(N)), N_); 
-    // S_ will agree with the intersection of GE modulo N_ with SL(2,Z/N_);  TODO: Could precompute this if it is slow.
-
-    gens:=[g: g in Generators(S_)];
-
-    UN,iotaN:=UnitGroup(Integers(N));  
-    T:=Transversal(X[k]`Gc, sl2Lift(X[k]`Hc,#BaseRing(X[k]`Gc)));  // TODO: Could precompute this if it is slow.
-    assert #T eq #UN;
-
-    // The function xi: (Z/N)^* -> Gc maps each d to a matrix in Gc with determinant d.
-    xi:=map<{iotaN(d): d in UN}-> Parent([1]) | [<Determinant(t),[Integers()!a: a in Eltseq(t)]>: t in T]>;  
-    // TODO:  Could precompute this if it is slow.
-
-    
     // For all d in a set of generators of (Z/N_)^*, we construct a matrix in GE with determinant d.
-    for u in Generators(UN_) do
+
+    S:=Generators(UN_);
+    if d0 ne 0 then S:={d0 @@ iotaN_}; end if;
+
+    gens:=[];
+    for u in S do
         d:=Integers()!iotaN_(u); 
 
         g:=GL(2,Integers(N))! xi(Integers(N)!d); // element of Gc mod N with determinant d
@@ -1167,12 +1259,15 @@ function ComputeHE(k,u,E)
         h:=GL2!f_A(gamma(d @@ iotaM)); 
         g:=g*h;
 
+        if d0 ne 0 then return g; end if;
+
         gens:=gens cat [g];
     end for;
 
-    HE:=sub<GL2|gens>;  
-
-    return HE;
+    
+    gens:= [SL(2,Integers(N_))!g : g in X[k]`Hc_gen] cat gens;
+    
+    return N_, gens; 
 
 end function;
 
@@ -1187,7 +1282,8 @@ function FindOpenImage(E : Bound:=10^8)
             -   a subgroup G of GL(2,Z/NZ) for some integer N>1 so that the inverse image of G under the reduction modulo N map 
                 GL(2,Zhat)->GL(2,Z/NZ) is conjugate to G_E in GL(2,Zhat).
             -   the index of G_E in GL(2,Zhat).
-            -   a subgroup H of SL(2,Z/MZ) for some M>1 which gives the intersection of G_E and SL(2,Zhat) up to conjugacy in GL(2,Zhat).
+            -   the intersection of G with SL(2,Zhat) given as a subgroup of SL(2,Z/MZ) with M>0 minimal.
+.
 
         Note: There are some relevant high genus modular curves that we do not know the rational points of, but can rule out by considering 
                 traces of Frobenius for many primes (for example, see the paper of Rouse-Sutherland-Zurieck-Brown).
@@ -1199,7 +1295,6 @@ function FindOpenImage(E : Bound:=10^8)
     assert j notin CM_jInvariants;  // Elliptic curve should be non-CM
 
     
-    
     // Now let G_E be the transpose(!) of the image of rho_E in GL(2,Zhat).  We will compute this G_E and take the transpose as a final step.
 
     // The following finds an agreeable subgroup G that contains G_E and has the same commutator subgroup; 
@@ -1208,184 +1303,102 @@ function FindOpenImage(E : Bound:=10^8)
     nonexceptional, k, S:=FindAgreeableClosure(j : minimal:=false);
     // The "minimal" parameter set to false means that we don't need G to be the agreeable closure of G_E.  
 
+    
     if nonexceptional eq false and j in known_exceptional_jinvariants then
-        // Will fix in future with precomputed groups. TODO
-        "FindOpenImage is currently not implements for this elliptic curve (which comes from a rational point on a modular curve with only finitely many points";
-        assert false;
+        // This covers a finite number of cases where j arises from a certain modular curve with 
+        // only finitely many rational points.   We have already precomputed the image in this case (up to replacing E by a quadratic twist)
+
+        assert exists(v){v: v in ExceptionalImages | v[1] eq j};
+
+        //    output:=[* j, a_invariants, #BaseRing(G), [Eltseq(g): g in Generators(G)], index, #BaseRing(H), [Eltseq(g): g in Generators(H)] *];
+        a_invariants:=v[2];
+        E0:=EllipticCurve(v[2]);  
+        assert jInvariant(E0) eq j;
+        _,d:=IsQuadraticTwist(E,E0);        
+
+        G0:=sub<GL(2,Integers(v[3])) | v[4]>;
+        index:=v[5];
+        H0:=sub<SL(2,Integers(v[6])) | v[7]>;
+
+
+        G0:=sub<GL(2,BaseRing(G0)) | [Transpose(G0.i): i in [1..Ngens(G0)]] >;  // image of rho_{E0}^*
+        GE:=OpenImageOfTwist(E0,G0,d);  // image of rho_{E}^*
+        GE:=sub<GL(2,BaseRing(GE)) | [Transpose(GE.i): i in [1..Ngens(GE)]] >;  // image of rho_{E}
+
+        return GE, index, H0;
     end if;
 
 
-    // If the returned value "nonexceptional" is false, then we have likely stumbled across a new special j-invariant (for example, arising from an exceptional point 
-    // on a modular curve).
+    // If the returned value "nonexceptional" is false, then we have likely stumbled across a new special j-invariant 
+    // (for example, arising from an exceptional point on a modular curve).
     if nonexceptional eq false then  
-        "Eceptional j-invariant found and requires more study:",  j; 
+        "Possible Exceptional j-invariant found and requires more study:",  j; 
         assert false; 
     end if;  
 
-    // X[k] should have several extra quantities computed.
+    // X[k] should have several extra quantities precomputed.
     assert X[k]`is_agreeable and assigned X[k]`Gc_decomp and assigned X[k]`cyclic_invariants;
 
     if X[k]`cyclic_invariants eq [] then
-        // Special case where [G,G] equals the integersection of G with SL(2,Zhat).
+        // Special case where [G,G] equals the intersection of G with SL(2,Zhat).
         // In this case, G_E will equal G and we are done.
         G:=X[k]`G;
-        GE:=sub<GL(2,BaseRing(G))|{Transpose(g): g in Generators(G)}>; // transpose to get image of rho_E and not rho_E^*
+        H:=X[k]`Hc;
+        GE:=sub<GL(2,BaseRing(G))|{Transpose(g): g in Generators(G)}>; // transpose to get image of rho_E and not rho_E^*   
+        HE:=sub<SL(2,BaseRing(H))|{Transpose(g): g in Generators(H)}>;
 
-        H:=X[k]`Hc;  
-        H:=sub<SL(2,BaseRing(H))|{Transpose(h): h in Generators(H)}>;
-        return GE, X[k]`commutator_index, H;  
+        return GE, X[k]`commutator_index, HE;  
     end if;
 
-
-    // We replace E by a quadratic twist by an integer d0.  This is useful since the twist may have less primes
+    // We replace E by a quadratic twist by an integer d0.  This is useful since the twist can have less primes
     // of bad reduction.  We will need to remember this integer d0 for the end when we return to our original elliptic curve.
-    d0:=1;
-    for p in BadPrimes(E) do
-        if p eq 2 and KodairaSymbol(E,p) ne KodairaSymbol("I0") then
-            for d in {-1,2,-2} do
-                if KodairaSymbol(QuadraticTwist(E,d),2) eq KodairaSymbol("I0") then
-                    d0:=d0*d;
-                    break d; 
-                end if;
-            end for;
-        end if;
-        if p gt 2 and KodairaSymbol(E,p) eq KodairaSymbol("I0*") then
-            d0:=d0*p;
-        end if;
-    end for;
-    E:=QuadraticTwist(E,d0);
-    E:=MinimalModel(E);
+
+    E, d0:= MinimalTwist(E);
+    //d0 := SquarefreeFactorization(d0);  TODO
+    // ensure d0 is squarefree
+    d1:=Numerator(d0);
+    d1:=Sign(d1) * &*([1] cat [p: p in PrimeDivisors(d1) | IsOdd(Valuation(d1,p))]);
+    d2:=Denominator(d0);
+    d2:=Sign(d2) * &*([1] cat [p: p in PrimeDivisors(d2) | IsOdd(Valuation(d2,p))]);
+    d0:=d1*d2; 
+    
+
+    assert IsMinimalModel(E); 
     BadPrimesE:=BadPrimes(E);
 
     // The (nonempty) set of rational points on the modular curve X[k] lying over the j-invariant j
     S:={Eltseq(P): P in S};
-
     // We remove the point of infinity to make some computations easier.
     S0:={P: P in S | P[#P] ne 0};  
-    assert #S0 ne 0;   // We checked case by case that this S0 is nonempty
+    assert #S0 ne 0;   // We checked case by case in the precomputation that this new S0 is also nonempty
 
     u:=Rep(S0); // choose a point
 
-    GE:= ComputeHE(k,u,E);
+    N1,gens1:=ComputeHEGenerators(k,u,E);
 
-    //A<[sigma]>:=AbelianGroup(X[k]`cyclic_invariants);
+    GE:=sub<GL(2,Integers(N1)) | gens1>;
 
-    /*  The rational point u and our curve E gives rise to a homomorphism 
-            gamma_E: Zhat^*-> G/Gc, 
-        where Gc:=X[k]`Gc; see the paper for details.
-        
-        There is an isomorphism between G/Gc and the above abelian group A, where the standard basis of A
-        corresponds with the sequence X[k]`cyclic_generators of elements in G/Gc.
-
-        We now compute the homomorphism Zhat^*->A obtained by composing gamma_E with the isomorphism.
-        It will factor through a homomorphism gamma: (Z/MZ)^* -> A which we now compute.
-    */
-
-/*
-    M,gamma_pairs:=ComputeGammaE(k,u,E);
-
-    U_,iotaM:=UnitGroup(Integers(M));
-    gens:=[ a[1] @@ iotaM: a in gamma_pairs ];
-    UM:=sub<U_|gens>;
-    gamma:=hom<UM->A | [ A!a[2] : a in gamma_pairs ] >;
-    
-    assert &and [gamma(gens[j]) eq A!gamma_pairs[j][2] : j in [1..#gens]];
-*/
-
-/*
-    N:=#BaseRing(X[k]`Gc);
-    if X[k]`N eq 1 then
-        G:=GL(2,Integers(N));
-    else
-        G:=gl2Lift(X[k]`G,N);
-    end if;
-    
-    //    We have an implicit isomorphism A -> G/Gc.
-    //    We construct a map f_A: A -> SL(2,Z) so that for each a in A,  f_A(a) modulo N
-    //    lies in G and represents the coset of G/Gc corresponding to a.    
-    Psi:=[];
-    for i in [1..#X[k]`Gc_decomp] do
-        Q,iotaQ:=quo<G|X[k]`Gc_decomp[i]>;
-        assert Determinant(X[k]`cyclic_generators[i]) eq 1;
-        g:=G!LiftMatrix(X[k]`cyclic_generators[i],1);
-        psi:=hom<Q->A | [<iotaQ(g), sigma[i]>] >; 
-        psi:=hom<G->A | [psi(iotaQ(G.i)): i in [1..Ngens(G)]]>;
-        Psi:=Psi cat [psi];        
-    end for;
-    psi:=hom<G->A | [ &+[psi(G.i): psi in Psi] : i in [1..Ngens(G)]]>;
-    H:=G meet SL(2,Integers(N));
-    psi:=hom<H->A | [psi(H.i): i in [1..Ngens(H)]]>;
-    assert Image(psi) eq A;
-    f_A:=map<A->SL(2,Integers()) | [<a,LiftMatrix(a @@ psi,1)>: a in A]>;  
-   
-     
-    // ****** We can finally compute the image GE of rho_E^*, up to conjugacy, in GL(2,Zhat) *****
-   
-    N_:=LCM(N,M);   // The level of GE will divide N_; we will give GE by its image modulo N_
-
-    UN_,iotaN_:=UnitGroup(Integers(N_));
-    GL2:=GL(2,Integers(N_));
-    
-    S_:=sl2Lift(X[k]`Gc meet SL(2,Integers(N)), N_); 
-    // S_ will agree with the intersection of GE modulo N_ with SL(2,Z/N_);  TODO: Could precompute this if it is slow.
-
-    gens:=[g: g in Generators(S_)];
-
-    UN,iotaN:=UnitGroup(Integers(N));  
-    T:=Transversal(X[k]`Gc, sl2Lift(X[k]`Hc,#BaseRing(X[k]`Gc)));  // TODO: Could precompute this if it is slow.
-    assert #T eq #UN;
-
-    // The function xi: (Z/N)^* -> Gc maps each d to a matrix in Gc with determinant d.
-    xi:=map<{iotaN(d): d in UN}-> Parent([1]) | [<Determinant(t),[Integers()!a: a in Eltseq(t)]>: t in T]>;  
-    // TODO:  Could precompute this if it is slow.
-
-    
-    // For all d in a set of generators of (Z/N_)^*, we construct a matrix in GE with determinant d.
-    for u in Generators(UN_) do
-        d:=Integers()!iotaN_(u); 
-
-        g:=GL(2,Integers(N))! xi(Integers(N)!d); // element of Gc mod N with determinant d
-        
-
-            // Now lift g to a matrix modulo N_ with determinant d 
-            m1:=&*[p^Valuation(N_,p): p in PrimeDivisors(N)];
-            g1:=GL(2,Integers(m1))![Integers()!a: a in Eltseq(g)]; 
-            // easy to lift g mod m1 since m1 and N have the same prime divisors
-
-            g1:=g1 * GL(2,Integers(m1))![d/Determinant(g1),0,0,1];  
-            // scale my matrix that is I mod N so that g mod m1 has determinant d
-
-            m2:=N_ div m1;
-            g1:=GL2! crt(g1,[d,0,0,1],m1,m2);  
-            // matrix in GL(2,Z/N_) with determinant d and g mod N lies in G mod N
-            assert Determinant(g1) eq Integers(N_)!d and ChangeRing(g1,Integers(N)) eq g ;
-
-            g:=g1;
-        
-        //d1:= UM![d]; h:=GL2!f_A(gamma(d1)); 
-        h:=GL2!f_A(gamma(d @@ iotaM)); 
-        g:=g*h;
-
-        gens:=gens cat [g];
-    end for;
-
-    GE:=sub<GL2|gens>;  // Lift to GL(2,Zhat) gives the image of rho_E^* up to conjugacy.
-*/
     // Earlier, we replaced E by its quadratic twist by an integer d0.
     // We now change GE to take this into account.
 
     ContainsMinusI:=GL(2,BaseRing(X[k]`Gc))![-1,0,0,-1] in X[k]`Gc;
     if ContainsMinusI eq false then
-        HE:=OpenImageOfTwist(E,GE,d0);
+        GE:=OpenImageOfTwist(E,GE,d0);
     end if;
-    
+
+    // We already know a set of generators of GE intersected with SL(2,Zhat).
+    // The following is a rather silly adjustment of the set of generators of GE; because of how things are 
+    // implemented, this can sometimes greatly reduced the set of generators.
+    gens:=[GE.i: i in [1..Ngens(GE)]];
+    gens:=[g: g in gens | Determinant(g) ne 1];
+    gens:=[GL(2,BaseRing(GE))!g: g in X[k]`Hc_gen] cat gens;
+    GE:=sub<GL(2,BaseRing(GE)) | gens>;
+
+    HE:=X[k]`Hc;
+
     // transpose at end!  This gives image of rho_E (not rho_E^*)
     GE:=sub<GL(2,BaseRing(GE))|{Transpose(g): g in Generators(GE)}>;
-
-    // Intersection of GE with SL(2,Zhat).
-    HE:=X[k]`Hc; 
-    HE:=sub<SL(2,BaseRing(HE))|{Transpose(h): h in Generators(HE)}>;
-
+    HE:=sub<SL(2,BaseRing(HE))|{Transpose(g): g in Generators(HE)}>;
 
     return GE, X[k]`commutator_index, HE;
 

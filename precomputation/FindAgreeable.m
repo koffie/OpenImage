@@ -37,11 +37,11 @@ repeat
 	end if;
 until not b;
 for k in Keys(X) do
-    X[k]`map_to_jline:=MapTojLine(X,k);
+    X[k]`map_to_jline:=[* MapTojLine(X,k) *];
 end for;
 
 
-total_time:=Cputime();
+total_time:=Realtime();
 
 keys:=[k: k in Keys(X) | X[k]`has_infinitely_many_points];
 _:=exists(base){k: k in Keys(X) | X[k]`N eq 1};  // "base" is the label of the j-line
@@ -60,7 +60,7 @@ for i in [1..#keys] do
     low_genus_rejects:=[* *];   // we keep track of groups G of genus 0 and 1 that we throw away because X_G(Q) has no non-CM point
 
 
-    time0:=Cputime();
+    time0:=Realtime();
 
     todo:=[k];  // todo list containing labels we need to study
     repeat 
@@ -254,7 +254,7 @@ for i in [1..#keys] do
             // add new modular curve
             X[k_new]:=M;
             X[k_new]`key:=k_new;
-            X[k_new]`map_to_jline:=MapTojLine(X,k_new);
+            X[k_new]`map_to_jline:=[* MapTojLine(X,k_new) *];
 
             if X[k_new]`is_agreeable eq false and X[k_new]`has_infinitely_many_points eq true then                
                 k1:=k cat [IntegerToString(label_count)];
@@ -350,10 +350,10 @@ for i in [1..#keys] do
 
     end for;
 
-    print "time=",Cputime(time0);
+    print "time=",Realtime(time0);
 end for;
 
-Cputime(total_time);
+Realtime(total_time);
 
 
 // some extra steps that makes saving easier.

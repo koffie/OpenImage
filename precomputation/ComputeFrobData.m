@@ -14,7 +14,7 @@ until not b;
 // Setting some entries of X
 for k in Keys(X) do
     if X[k]`genus le 1 then
-        X[k]`map_to_jline:=MapTojLine(X,k);
+        X[k]`map_to_jline:=[*MapTojLine(X,k)*];
     end if;
 end for;
 for k in Keys(X) do
@@ -48,7 +48,7 @@ function ComputeFrobData0(n,p,c)
             Suppose b is true. Then Z has dimension 0, degree n, and C acts simply transitively on the points of Z 
             (over an algebraic closure of F_p).  For any point of Z, applying the p-power Frobenius is the same as
             acting by C^e.
-    */
+    */  
 
     if p eq 2 or n mod p eq 0 then
         return false, 0;
@@ -65,18 +65,21 @@ function ComputeFrobData0(n,p,c)
 
     // Want equations to define a reduced scheme of dimension 0 and degree n
     AA:=AffineSpace(GF(p),m);
+
     Z:=Scheme(AA,psi);
+
     if Dimension(Z) ne 0 or Degree(Z) ne n or IsReduced(Z) eq false then 
         return false, 0; 
     end if;
-        
+
     // Choose an irreducible component Z1 of Z
     Z1:=IrreducibleComponents(Z)[1];
+
     d:=Degree(Z1); 
     FF:=GF(p^d); // smallest field over which Z1 has a FF-point
     P:=Rep( Points(ChangeRing(Z1,FF))); // pick a point
 
-            C:=Transpose(CompanionMatrix(CyclotomicPolynomial(n)));  // transpose due to Magma's convention
+    C:=Transpose(CompanionMatrix(CyclotomicPolynomial(n)));  // transpose due to Magma's convention
     Cp:=ChangeRing(C,FF); // Matrix that should act simply transitively on FF-points of Z             
 
     Z:=ChangeRing(Z,FF);
@@ -127,7 +130,7 @@ function ComputeFrobData(k,i, p : pt:=[])
     m:=EulerPhi(n);
 
     cover:=X[k]`cyclic_models[i]; 
-    
+
     if  p eq 2 or n mod p eq 0 or (X[k]`genus eq 1 and p in BadPrimes(X[k]`C)) then
         return {};  // bad cases; let's return nothing        
     end if;
@@ -149,7 +152,6 @@ function ComputeFrobData(k,i, p : pt:=[])
 
     R<[x]>:=PolynomialRing(GF(p),m);
     for t in S do 
-
         // try to specialize our cyclic covers at t; 
         // if valid (i.e., we don't divide by 0), we keep in a sequence F
         c:=[];
@@ -194,6 +196,10 @@ procedure PreComputationOfFrobData(filename,bound)
 
     cyclic_frobenius:=AssociativeArray();
     keys:=[k: k in Keys(X) | assigned X[k]`Gc_decomp and not X[k]`extraneous];
+
+    keys:=[k: k in keys | 16 in X[k]`cyclic_invariants] cat [k: k in keys | 16 notin X[k]`cyclic_invariants];
+    // order the sequence "keys" so that the most computationally intensive cases are done first
+
     for k in keys do
         X[k]`cyclic_invariants;
         cyclic_frobenius[k]:=AssociativeArray();
@@ -207,6 +213,7 @@ procedure PreComputationOfFrobData(filename,bound)
             end if;
 
             for p in PP do
+                p;
                 cyclic_frobenius[k][[i,p]]:=ComputeFrobData(k,i,p);            
             end for;
 

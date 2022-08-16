@@ -26,12 +26,12 @@ repeat
 until not b;
 for k in Keys(X) do
     if X[k]`genus le 1 then
-        X[k]`map_to_jline:=MapTojLine(X,k);
+        X[k]`map_to_jline:=[*MapTojLine(X,k)*];
     end if;
 end for;
 
 
-total_time:=Cputime();
+total_time:=Realtime();
 
 
 keys:=[k: k in Keys(X) | X[k]`genus le 1 and X[k]`has_infinitely_many_points and X[k]`is_agreeable];
@@ -52,9 +52,26 @@ for k in keys do
         G:=GL(2,Integers(2));  N:=2;
     end if;
     N0,gens0,ind0:=FindCommutatorSubgroup(G);  
-    X[k]`Hc:=sub<SL(2,Integers(N0)) | gens0>;   // gives the group [G,G]
+    Hc:=sub<SL(2,Integers(N0)) | gens0>;   // gives the group [G,G]
     X[k]`commutator_index:=ind0; // index in SL(2,Zhat)
+
+    // We look for a relatively small list of generators of Hc; this is done in a rather dumb way
+    gens1:={};
+    H:=sub<SL(2,Integers(N0)) | gens1>;
+    while H ne Hc do
+        m:=Maximum({#sub<SL(2,Integers(N0))|gens1 join {h}> : h in Hc | h notin H});
+        assert exists(a){h: h in Hc | h notin H and #sub<SL(2,Integers(N0))|gens1 join {h}> eq m };
+        gens1:=gens1 join {a};
+        H:=sub<SL(2,Integers(N0)) | gens1>;
+    end while;
+    Hc:=H;
+    X[k]`Hc:=Hc;
+
+    gens1:=[ Eltseq(LiftMatrix(A,1)): A in gens1];
+    gens1:= gens1 cat [[1,N0,0,1],[1,0,N0,1],[1-N0,-N0,N0,1+N0]];
+    X[k]`Hc_gen:=gens1;
 end for;
+
 
 // For the subgroups G of GL(2,Zhat) coming from the modular curves with label in the sequence "keys",
 // we check which are maximal, up to conjugacy, amongst those with the same commutator subgroup.
@@ -217,7 +234,7 @@ for k in keys0 do
 
 end for;
 
-Cputime(total_time);
+Realtime(total_time);
 
 
 // some extra steps that makes saving easier.

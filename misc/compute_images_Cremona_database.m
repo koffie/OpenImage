@@ -3,7 +3,7 @@
     computes the image of rho_E.
 
 */
-// nohup /net/apps/magma-2.27-2/magma -t 32 "compute_images_Cremona_database.m" &
+// magma -t 32 "compute_images_Cremona_database.m" &
 
 
 load "../main/FindOpenImage.m";

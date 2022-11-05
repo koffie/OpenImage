@@ -7,8 +7,7 @@
 
 */
 
-// nohup /net/apps/magma-2.27-2/magma -t 32 "FindExceptionalAgreeableClosures.m" &
-// nohup magma -t 32 "FindExceptionalAgreeableClosures.m" &
+// nohup magma -t 36 "FindExceptionalAgreeableClosures.m" &
 
 load "../main/FindOpenImage.m";
 

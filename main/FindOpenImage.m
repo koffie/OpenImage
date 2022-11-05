@@ -2,18 +2,17 @@
     Let E/Q be a non-CM elliptic curve.   Associated to the Galois action on the torsion points of E
     is a representation rho_E: Gal_Q -> GL(2,Zhat).
 
-    This files contains a function "FindOpenImage".   For E/Q given by a Weierstrass equation,
+    This files contains a function "FindOpenImage".   For a non-CM E/Q given by a Weierstrass equation,
     FindOpenImage(E) returns the following:
         - a group G that is the image of rho_E up to conjugacy in GL(2,Zhat); it is given by its image in GL(2,Z/NZ)
-          where N is divisible by the level of G in GL(2,Zhat)
+          where N is the level of G in GL(2,Zhat)
         - the index of G in GL(2,Zhat)
         - the intersection of G with SL(2,Zhat) given as a subgroup of SL(2,Z/MZ) with M>0 minimal.
         
     [ Return results are proven correct.  Trying increasing the extra parameter "Bound" in the unlikely 
     case that an error arises since the image could not be determined.   The function will always 
-    return an error if E happens to come from a rational point on a high genus modular curve that we missed. ]
+    return an error if E happens to come from an unknown rational point on a high genus modular curve that we missed. ]
 */
-
 
 
 load "../precomputation/ComputeFrobData.m";  // Loads all functions we need (may take a bit!)
@@ -1041,7 +1040,6 @@ function ComputeGammaE(k,u,E)
                 end if;
             elif p gt prime_bound and not done then
                 // Computes extra values if the precomputed Frobenius data is insuffcient.
-                //"Extra comp",p; //TODO
 
                 s:=ComputeFrobData(k,i, p : pt:=u_); 
                 if #s ne 0 then
@@ -1272,28 +1270,164 @@ function ComputeHEGenerators(k,u,E: d0:=0)
 end function;
 
 
-function FindOpenImage(E : Bound:=10^8)
+function ComputeLevelOfImageOfGalois(GE,G,Gc)
+    /* 
+        This technical function is used by "FindOpenImage" below.   For a non-CM elliptic curve E/Q, that function computes a group
+        GE that is conjugate in GL(2,Zhat) to the image of rho_E^*.   The group GE is given as a subgroup of GL(2,Z/M),
+        where M is a multiple(!) of the level of GE.   This function returns the level of GE.
+        (In all the cases considered so far, M turns out to be the level times 1, 2 or 4)
+
+        G and Gc are open subgroups of GL(2,Zhat) so that
+            - Gc is normal in G and G/Gc is abelian
+            - Gc has full determinant
+            - the commutator subgroup of G agrees with the intersection of Gc with SL(2,Zhat)
+            - GE is a subgroup of G and they have the same commutator subgroup.
+
+        From the paper, we find that GE is a group arising from the family of groups from the pair (G,Gc).   Using this description,
+        this function finds the level.  (This function will also work if GE is the image of rho_E with G and Gc having the same
+        properties)
+    */
+
+    N :=#BaseRing(GE);
+    N1:=#BaseRing(Gc);  assert N1 mod #BaseRing(G) eq 0;  // We assume G and Gc are given via their minimal levels.
+    levelG:=gl2Level(G); //remember for later
+
+    G:=gl2Lift(G,N1);
+
+    // Compute the quotient group A:=G/Gc and the quotient homorphism G->A.
+    // We replace A by an isomorphic group to avoid issues in Magma.
+    A_,iotaA_:=quo<G|Gc>;  // could hard code if this is slow.
+    A,i_:=AbelianGroup(A_);
+    iotaA:=hom<G->A | [ i_(iotaA_(G.i)) :  i in [1..Ngens(G)] ] >;
+
+    // We lift the groups to make things easier to compare.
+    q1:=&*[p^Valuation(N ,p): p in PrimeDivisors(N1)];
+    q2:=&*[p^Valuation(N1,p): p in PrimeDivisors(N1)];
+    q:=LCM(q1,q2);
+    N:=LCM(N,q);
+    N1:=LCM(N1,q);
+    GE:=gl2Lift(GE,N);
+    G :=gl2Lift(G ,N1);
+    Gc:=gl2Lift(Gc,N1);
+
+
+    U,iotaU:=UnitGroup(Integers(N));
+    pairs:=[ < (Determinant(GE.i)) @@ iotaU, iotaA(ChangeRing(GE.i,Integers(N1)))> : i in [1..Ngens(GE)]];
+    // We now define the homomorphism gamma: U->A from the sequence of pairs "pairs"
+        FA:=FreeAbelianGroup(#pairs); 
+        iota:=hom<FA->U | [U!a[1]: a in pairs]>;
+        gamma_:=hom<FA->A | [a[2]: a in pairs]>;
+    gamma :=hom<U->A | [gamma_(U.i @@ iota) : i in [1..Ngens(U)]]>;
+
+    // *** The group GE will consist of those g in G for which g*Gc = gamma(det g). ***
+
+    // The level of the kernel of gamma is a divisor of N.
+    // We compute the part of this level that is relatively prime to N1.
+    lev2:=1;
+    for p in [p: p in PrimeDivisors(N) | N1 mod p ne 0] do
+        assert p ne 2;  // We assume p is odd below; with our implementation this will always be the case.
+
+        q:=p^Valuation(N,p);
+        Uq,iotaq:=UnitGroup(Integers(q));
+        iq:=hom<Uq->U|   [  CRT( [Integers()!iotaq(Uq.i),1], [q,N div q]) @@ iotaU    : i in [1..Ngens(Uq)]]>; 
+        gammaq:=hom<Uq-> A |  [  gamma(iq(Uq.i)) : i in [1..Ngens(Uq)] ]>;
+        
+        M:=Kernel(gammaq);
+        if #M eq #Uq then 
+            lev_p:=1;
+        else        
+            lev_p:=Valuation(#Uq div #M,p) +1;
+        end if;
+        lev2:=lev2*p^lev_p;
+    end for;
+
+    assert N mod N1 eq 0 and GCD(N div N1, N1) eq 1;
+    U1,iota1:=UnitGroup(Integers(N1));   
+    i1:=hom<U1->U|   [  CRT( [Integers()!iota1(U1.i),1], [N1,N div N1]) @@ iotaU    : i in [1..Ngens(U1)]]>; 
+    gamma1:=hom<U1-> A |  [  gamma(i1(U1.i)) : i in [1..Ngens(U1)] ]>;
+    
+    // The following is a homomorphism G->A
+    function phi(g)
+        return iotaA(g) - gamma1( Determinant(g) @@ iota1 );
+    end function;
+
+    // We now compute the level of the kernel of phi
+    // (defining the homomorphism and kernel directly was too slow in practice)
+    lev1:=1;
+    for p in PrimeDivisors(N1) do
+        q:=p^Valuation(N1,p);
+
+        e:=Valuation(N1,p)-1;
+        repeat
+            if e lt Valuation(levelG,p) then 
+                // we can stop early since the level of G divides the level of GE.
+                lev1:=lev1 * p^(e+1); 
+                continue p;
+            end if;            
+
+            if e ge 1 then
+                S:={[1+p^e,0,0,1], [1,p^e,0,1], [1,0,p^e,1], [1,0,0,1+p^e]};
+                id:=[1,0,0,1];
+                S:={[ CRT([a[i],id[i]], [q, N1 div q]) : i in [1..4]] : a in S};
+                S:={ GL(2,Integers(N1))!a: a in S};
+                if &and{ phi(a) eq Identity(A) : a in S} eq false then
+                    lev1:=lev1 * p^(e+1);
+                    continue p;
+                end if;
+            else
+                S:=Generators(GL(2,Integers(p)));
+                S:={[Integers()!b: b in Eltseq(a)] : a in S};
+                id:=[1,0,0,1];
+                S:={[ CRT([a[i],id[i]], [q, N1 div q]) : i in [1..4]] : a in S};
+                S:={ GL(2,Integers(N1))!a: a in S};
+                if &and{ phi(a) eq Identity(A) : a in S} eq false then
+                    lev1:=lev1 * p^(e+1);
+                end if;
+                continue p;
+            end if;
+                                
+            e:=e-1;
+        until false;
+
+    end for;
+
+    level:=lev1*lev2;
+    return level;
+end function;    
+
+
+function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
     /*
         Input:  E is a non-CM elliptic curve defined over Q.
 
         Let G_E be the image of rho_E in GL(2,Zhat).
 
         Output: 
-            -   a subgroup G of GL(2,Z/NZ) for some integer N>1 so that the inverse image of G under the reduction modulo N map 
-                GL(2,Zhat)->GL(2,Z/NZ) is conjugate to G_E in GL(2,Zhat).
+            -   a subgroup G of GL(2,Z/NZ), where N is the level of G_E, so that the inverse image of G under the reduction modulo N map 
+                GL(2,Zhat)->GL(2,Z/NZ) is conjugate to G_E in GL(2,Zhat). 
             -   the index of G_E in GL(2,Zhat).
             -   the intersection of G with SL(2,Zhat) given as a subgroup of SL(2,Z/MZ) with M>0 minimal.
-.
+
 
         Note: There are some relevant high genus modular curves that we do not know the rational points of, but can rule out by considering 
                 traces of Frobenius for many primes (for example, see the paper of Rouse-Sutherland-Zurieck-Brown).
                 "Bound" gives a bound on how many primes to check up; in practice this bound is never obtained, but if it does it might 
                 hint at a new exceptional rational point and a error is returned.
+
+        If "find_level" is set to false, then N will only be a multiple of the level of G_E.   
+        If "dual" is set to true, then the function works the same except now G_E is the image of the dual representation rho_E^*.     
     */
 
+    if dual then
+        G, index, H:= FindOpenImage(E : Bound:=Bound, find_level:=find_level, dual:=false);
+        G:=sub<GL(2,BaseRing(G))| {Transpose(g): g in Generators(G)}>;
+        H:=sub<SL(2,BaseRing(H))| {Transpose(g): g in Generators(H)}>;
+        return G, index, H;
+    end if;
+    
     j:=jInvariant(E);
     assert j notin CM_jInvariants;  // Elliptic curve should be non-CM
-
+    E_:=E;
     
     // Now let G_E be the transpose(!) of the image of rho_E in GL(2,Zhat).  We will compute this G_E and take the transpose as a final step.
 
@@ -1325,6 +1459,15 @@ function FindOpenImage(E : Bound:=10^8)
         GE:=OpenImageOfTwist(E0,G0,d);  // image of rho_{E}^*
         GE:=sub<GL(2,BaseRing(GE)) | [Transpose(GE.i): i in [1..Ngens(GE)]] >;  // image of rho_{E}
 
+
+        if find_level then
+            G:=sub<GL(2,Integers(v[8]))| v[9]>;
+            Gc:=sub<GL(2,Integers(v[10]))| v[11]>;
+            level:=ComputeLevelOfImageOfGalois(GE,G,Gc);
+            GE:=ChangeRing(GE,Integers(level));
+        end if;
+
+
         return GE, index, H0;
     end if;
 
@@ -1341,8 +1484,11 @@ function FindOpenImage(E : Bound:=10^8)
 
     if X[k]`cyclic_invariants eq [] then
         // Special case where [G,G] equals the intersection of G with SL(2,Zhat).
-        // In this case, G_E will equal G and we are done.
+        // In this case, G_E will equal G and we are done.  Note that by the construction of our G,
+        // it will be a subgroup of GL(2,Z/NZ) where N is the level of G_E.
+
         G:=X[k]`G;
+
         H:=X[k]`Hc;
         GE:=sub<GL(2,BaseRing(G))|{Transpose(g): g in Generators(G)}>; // transpose to get image of rho_E and not rho_E^*   
         HE:=sub<SL(2,BaseRing(H))|{Transpose(g): g in Generators(H)}>;
@@ -1354,8 +1500,9 @@ function FindOpenImage(E : Bound:=10^8)
     // of bad reduction.  We will need to remember this integer d0 for the end when we return to our original elliptic curve.
 
     E, d0:= MinimalTwist(E);
-    //d0 := SquarefreeFactorization(d0);  TODO
+    d0 := SquarefreeFactorization(d0);  // I think there is a small memory leak in this Magma function 
     // ensure d0 is squarefree
+
     d1:=Numerator(d0);
     d1:=Sign(d1) * &*([1] cat [p: p in PrimeDivisors(d1) | IsOdd(Valuation(d1,p))]);
     d2:=Denominator(d0);
@@ -1388,11 +1535,18 @@ function FindOpenImage(E : Bound:=10^8)
 
     // We already know a set of generators of GE intersected with SL(2,Zhat).
     // The following is a rather silly adjustment of the set of generators of GE; because of how things are 
-    // implemented, this can sometimes greatly reduced the set of generators.
+    // implemented, this can sometimes greatly reduce the set of generators.
     gens:=[GE.i: i in [1..Ngens(GE)]];
     gens:=[g: g in gens | Determinant(g) ne 1];
     gens:=[GL(2,BaseRing(GE))!g: g in X[k]`Hc_gen] cat gens;
     GE:=sub<GL(2,BaseRing(GE)) | gens>;
+
+    // We now replace GE by its image modulo its level.
+    if find_level then
+        if X[k]`N ne 1 then G:=X[k]`G; else G:=GL(2,Integers(2)); end if;
+        level:=ComputeLevelOfImageOfGalois(GE,G,X[k]`Gc);
+        GE:=ChangeRing(GE,Integers(level));
+    end if;
 
     HE:=X[k]`Hc;
 
@@ -1401,6 +1555,4 @@ function FindOpenImage(E : Bound:=10^8)
     HE:=sub<SL(2,BaseRing(HE))|{Transpose(g): g in Generators(HE)}>;
 
     return GE, X[k]`commutator_index, HE;
-
 end function;
-

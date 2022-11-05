@@ -23,7 +23,7 @@ for N in [1..max] do
     for E in EllipticCurves(D,N) do
         
         j:=jInvariant(E);
-        if j in CM_jInvariants or j in known_exceptional_jinvariants then continue E; end if;
+        if j in CM_jInvariants then continue E; end if;
         
         GE,index,HE:=FindOpenImage(E);
         gens1:=[ [Integers()!a: a in Eltseq(GE.i)] : i in [1..Ngens(GE)]];

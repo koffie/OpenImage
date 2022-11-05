@@ -3,7 +3,7 @@
     computes the image of rho_E.
 
 */
-// nohup /net/apps/magma-2.27-2/magma -t 32 "compute_images_Cremona_database.m" &
+// magma -t 32 "compute_images_Cremona_database.m" &
 
 
 load "../main/FindOpenImage.m";
@@ -40,7 +40,7 @@ for N in [1..max] do
                   lifted in GL(2,Zhat) is the image of rho_E  (up to conjugacy).
                 - v[5] is a positive integer and v[6] is a sequence that consists of sequences of integers of length 4 so that the group
                         HE:=sub< SL(2,Integers(v[5])) | v[6]>
-                  lifted in SL(2,Zhat) is the integersection of the lift of GE with SL(2,Zhat).
+                  lifted in SL(2,Zhat) is the intersection of the lift of GE with SL(2,Zhat).
         */
 
         // *** LATER: at this point save "v" to file ***

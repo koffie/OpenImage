@@ -1333,8 +1333,9 @@ function ComputeLevelOfImageOfGalois(GE,G,Gc)
         gammaq:=hom<Uq-> A |  [  gamma(iq(Uq.i)) : i in [1..Ngens(Uq)] ]>;
         
         M:=Kernel(gammaq);
+
         if #M eq #Uq then 
-            lev_p:=1;
+            lev_p:=0;
         else        
             lev_p:=Valuation(#Uq div #M,p) +1;
         end if;

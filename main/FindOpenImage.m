@@ -1397,6 +1397,10 @@ function ComputeLevelOfImageOfGalois(GE,G,Gc)
 end function;    
 
 
+
+
+
+
 function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
     /*
         Input:  E is a non-CM elliptic curve defined over Q.
@@ -1556,4 +1560,53 @@ function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
     HE:=sub<SL(2,BaseRing(HE))|{Transpose(g): g in Generators(HE)}>;
 
     return GE, X[k]`commutator_index, HE;
+end function;
+
+
+function FindLevels(G,index,H)
+
+    N:=#BaseRing(G);
+
+    N0:=#BaseRing(H);
+    H:=sl2Lift(H,N); 
+
+
+    N1:=&*[p^Valuation(N,p): p in PrimeDivisors(N0)];
+    N2:=N div N1;
+    assert N mod N1 eq 0 and GCD(N1,N2) eq 1;
+
+    pairs:=AssociativeArray();
+    pairs[1]:=1;
+
+    for d1 in Divisors(N1) do
+ 
+        if d1 eq 1 then 
+            continue d1; 
+        end if;
+    
+        G1:=ChangeRing(G,Integers(d1));
+        H1:=ChangeRing(H,Integers(d1));
+        ind1:=#GL(2,Integers(d1)) div #H1;
+
+        A1_,q1_:=quo<G1|H1>;
+        A1,q1:=AbelianGroup(A1_);
+
+        for d2 in Divisors(N2) do
+            A2,iota2:=UnitGroup(Integers(d2));
+            A,i1,i2:=DirectSum(A1,A2);
+          
+            V:=sub<A|[ i1(q1(q1_( ChangeRing(g,Integers(d1)) ))) + i2( Determinant(ChangeRing(g,Integers(d2))) @@ iota2 )     : g in Generators(G)]>;
+          
+            ind2:=EulerPhi(d2);
+
+            pairs[d1*d2]:= (ind1*ind2) div #V;
+        end for;
+    end for;
+
+    D:={d: d in Keys(pairs) |  d ne 1 and &and{ pairs[d] ne pairs[e] : e in Divisors(d) | e in Keys(pairs) and e ne d}  };
+    D:=D join {1};
+    D:=Sort([d: d in D]);
+
+    pairs0:=[[d,pairs[d]]: d in D];
+    return pairs0;
 end function;

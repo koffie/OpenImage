@@ -1564,19 +1564,35 @@ end function;
 
 
 function FindLevels(G,index,H)
+    /*  
+        Consider a non-CM elliptic curve E/Q. 
+        Input
+            G, index, H:  these should be the output of FindOpenImage(E).
 
+        Recall G is a subgroup of GL(2,Z/NZ) that describes the image of rho_E, up to conjugacy, where
+        N is its level.
+
+        Output:
+            - a sequence of all pairs (d,i), ordered by increasing d, so that the image of G modulo d has 
+                index i in GL(2,Z/dZ) and G modulo e has index < i in GL(2,Z/eZ) for all proper divisors e of d.
+            - a sequence of the same length of the last one that describes the group obtained by taking the 
+              image of G modulo d and then intersecting with SL(2,ZdZ); it is given as a pair where the first
+              value is the level and thhe second is a sequence of its generators mod the level.
+
+    */
     N:=#BaseRing(G);
-
     N0:=#BaseRing(H);
     H:=sl2Lift(H,N); 
-
 
     N1:=&*[p^Valuation(N,p): p in PrimeDivisors(N0)];
     N2:=N div N1;
     assert N mod N1 eq 0 and GCD(N1,N2) eq 1;
 
+    sl2group:=AssociativeArray();
     pairs:=AssociativeArray();
+
     pairs[1]:=1;
+    sl2group[1]:=[*1,[]*];
 
     for d1 in Divisors(N1) do
  
@@ -1588,18 +1604,51 @@ function FindLevels(G,index,H)
         H1:=ChangeRing(H,Integers(d1));
         ind1:=#GL(2,Integers(d1)) div #H1;
 
+        HH:= G1 meet SL(2,Integers(d1));
+        T:=[t: t in Transversal(HH,H1)];
+
         A1_,q1_:=quo<G1|H1>;
         A1,q1:=AbelianGroup(A1_);
 
         for d2 in Divisors(N2) do
             A2,iota2:=UnitGroup(Integers(d2));
             A,i1,i2:=DirectSum(A1,A2);
-          
-            V:=sub<A|[ i1(q1(q1_( ChangeRing(g,Integers(d1)) ))) + i2( Determinant(ChangeRing(g,Integers(d2))) @@ iota2 )     : g in Generators(G)]>;
-          
-            ind2:=EulerPhi(d2);
 
+            function phi(g,e)
+                return i1(q1(q1_( ChangeRing(g,Integers(d1)) ))) + i2( (Integers(d2)!e) @@ iota2 );
+            end function;
+          
+            V:=sub<A|[ phi(g,Determinant(g)) : g in Generators(G)]>;
+            U:=sub<A| [phi(g,1): g in Generators(HH)]>;
+            W:=U meet V;
+            
+            gens:=[]; W0:=sub<A|gens>;            
+            gens_:=[t: t in Generators(H1)];
+            T0:=T;
+            while W0 ne W do   
+                t:=T0[#T0];  Prune(~T0);
+                w:=phi(t,1);
+                if w in W and w notin W0 then
+                    gens:=gens cat [w];
+                    gens_:=gens_ cat [t];
+                    W0:=sub<A|gens>;
+                end if;
+            end while;
+            
+            H_:=sub<HH|gens_>;
+            assert Index(H_,H1) eq #W;
+
+            N_:=sl2Level(H_);
+            if N_ eq 1 then
+                sl2group[d1*d2]:=[*1,[]*];
+            else
+                H_:=ChangeRing(H_,Integers(N_));
+                sl2group[d1*d2]:=[*N_,[ [Integers()!b: b in Eltseq(g)] : g in Generators(H_) ]*];
+            end if;
+
+            ind2:=EulerPhi(d2);
             pairs[d1*d2]:= (ind1*ind2) div #V;
+
         end for;
     end for;
 
@@ -1608,5 +1657,7 @@ function FindLevels(G,index,H)
     D:=Sort([d: d in D]);
 
     pairs0:=[[d,pairs[d]]: d in D];
-    return pairs0;
+    groups:=[sl2group[d]: d in D];
+    
+    return pairs0, groups;
 end function;

@@ -1,3 +1,8 @@
+// This is a modification of David Zywina's "ModularCurves.m".
+// The parameter mult is now part of ModularCurveRec.
+// When a space of modular forms is computed, the lower bounds on order of vanishing at each
+// cusp is now stored. 
+
 // This contains our basic functions for working with modular forms and modular curves.
 // Assumes that "GL2GroupTheory.m" has been loaded already.     
 
@@ -13,9 +18,9 @@ ModularCurveRec := recformat<
         cyclic_invariants, cyclic_models, cyclic_generators, cover_with_same_commutator_subgroup, psi :SeqEnum,   
     has_point, has_infinitely_many_points, has_nonCM_point, is_agreeable, is_entangled, extraneous, is_serre_type_model: BoolElt,                                                              
     G, H, Hc, Gc :GrpMat,    
-    Hc_gen: SeqEnum,                      
+    Hc_gen, mult: SeqEnum,                      
     C:Crv, 
-    map_to_jline, pi :List,
+    map_to_jline, pi: List,
     sturm: FldRatElt >;	 
 
 /*                            
@@ -445,7 +450,8 @@ function FindModularForms(k,M,prec)
     Remark: This function was designed to work well (and tested) in the case where det(G)=(Z/NZ)^*.  Further optimizations are certainly possible in other cases.    
  */ 
     M`k:=k; 
-    N:=M`N; 
+    N:=M`N;
+    M`mult := [ 0 : i in [1..M`vinf]];
     error if N eq 1, "FindModularForms not implemented when N=1.";  // This case can be easily handled by Magma's current functions since we have only one cusp
  
     GL2:=GL(2,Integers(N));
@@ -654,6 +660,8 @@ function FindModularFormsWithVanishingConditions(M,mult)
     N:=M`N;
     cusps:=M`cusps;
     widths:=M`widths;
+    M`mult := mult;
+
      
     error if &or[m lt 0: m in mult], "Multiplicities need to be positive."; 
     if &and[m eq 0: m in mult] or #M`F eq 0 then M`F0:=M`F; return M; end if;  // nothing to compute
@@ -938,6 +946,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
             M`F0:=F;
             M`psi:=psi;  
             M`has_infinitely_many_points:=false;  // by Faltings
+            M`mult := [ 1 : i in [1..M`vinf]];
             return M;
         end if;
     end if;
@@ -1182,7 +1191,6 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
         end if;
 
         // Our genus 1 curve X has a Q-point P0.
-
         E0,pi0:=EllipticCurve(X,P0);
         E,pi1:=MinimalModel(E0);
         pi:=Expand(pi0*pi1);  // Isomorphism X->E sending P0 to 0.

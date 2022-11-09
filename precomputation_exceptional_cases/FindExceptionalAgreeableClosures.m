@@ -252,7 +252,8 @@ for j in Keys(ExceptionalImages) do
 
         pts:=LiftQpoints(X[k1]`map_to_jline[1],{X[base]`C![j,1]});
         pts:={Eltseq(P): P in pts};
-        tuple:=[* j,true,k1,pts *]; tuple;
+        tuple:=[* j,true,k1,pts *]; 
+        tuple;
 	else
         tuple:=[*j,false,k,ExceptionalImages[j]*];
     end if;
@@ -265,5 +266,4 @@ I:=Open("../data-files/agreeable_closures_exceptional.dat", "w");
 for y in S do
     WriteObject(I, y);
 end for;
-
 

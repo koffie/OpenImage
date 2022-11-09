@@ -808,12 +808,16 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
     assert label in Keys(Qpoints_above_j);
  
 
+
+
     // Now compute the agreeable closure of G_E.  
     // We have already determined the ell-adic projections of the agreeable closure.
     keys:=unentangled_groups[label];  // sequence of agreeable groups with the correct ell-adic projections
     assert keys[1] eq label;  // should be ordered by index
 
     for i in [2..#keys] do
+
+    
         k:=keys[i];
         b:=X[k]`pi[1];
         if #Qpoints_above_j[b] eq 0 then // no points to lift
@@ -867,11 +871,25 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
                     c:=[Evaluate(a,t0): a in P0];
                     pol:=&+[c[i]*w^(i-1): i in [1..#c]];
 
-                    if HasRoot(pol) and IsSeparable(pol) then          
+                    has_root:=HasRoot(pol);
+                    is_separable:=IsSeparable(pol);
+                    if has_root and is_separable then          
                             Qpoints_above_j[k]:=Qpoints_above_j[k] join {[0]}; // we don't remember the actual point since we don't need it                        
-                    end if;
-                    // Note: we worked out all cases where pol could be separable (in a precomputation) and added them to 
+                    elif has_root and is_separable eq false and j in known_exceptional_jinvariants then                    
+                        Aff_<x,y>:=AffineSpace(Rationals(),2);                        
+                        pol_:=&+[ Evaluate(P0[i],x)*y^(i-1): i in [1..#P0]];
+                        C_:=Curve(Aff_,pol_);
+                        for r in {r[1] : r in Roots(pol)} do
+                            p_:=C_![t0,r];
+                            if 1 in {Degree(v): v in Places(p_)} then                        
+                                Qpoints_above_j[k]:=Qpoints_above_j[k] join {[0]}; // we don't remember the actual point since we don't need it   
+                                break r;
+                            end if;                        
+                        end for;
+                    end if;                    
+                    // Note: we worked out all cases where the singular points may hide rationals points and added them to
                     // "known_exceptional_jinvariants", if applicable, for separate study.
+                    
                 end for;
             end if;
 
@@ -1658,6 +1676,6 @@ function FindLevels(G,index,H)
 
     pairs0:=[[d,pairs[d]]: d in D];
     groups:=[sl2group[d]: d in D];
-    
+
     return pairs0, groups;
 end function;

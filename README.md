@@ -10,7 +10,7 @@ H,i,S := FindOpenImage(Z, EllipticCurve("14a1"));
 FindLevels(H,i,S);
 ```
 
-Currently there are intrinsics for the `FindCanonicalModel` and `FindRelations` functions in `ModularCurves.m`.  Feel free to submit a PR if there are other functions you would like to have exposed as intrinsics.
+Currently there are intrinsics for the `CreateModularCurveRec`, `FindCanonicalModel`, and `FindRelations` functions in `ModularCurves.m`.  Feel free to submit a PR if there are other functions you would like to have exposed as intrinsics.
 
 -----
 

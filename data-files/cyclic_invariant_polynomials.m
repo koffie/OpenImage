@@ -1,7 +1,14 @@
-
-
 inv_polynomials:=AssociativeArray();
 
+inv_polynomials[2] := <Matrix(Rationals(),[[-1]]),[R.1^2] where R:=PolynomialRing(Rationals(),1)>;
+inv_polynomials[3] := <Matrix(Rationals(),[[0,-1],[1,-1]]),[R.1^2+R.1*R.2+R.2^2,R.1^2*R.2+R.1*R.2^2,R.1^3+3*R.1^2*R.2-R.2^3] where R:=PolynomialRing(Rationals(),2)>;
+inv_polynomials[4] := <Matrix(Rationals(),[[0,-1],[1,0]]),[R.1^2+R.2^2,R.1^2*R.2^2,2*R.1^3*R.2-2*R.1*R.2^3] where R:=PolynomialRing(Rationals(),2)>;
+inv_polynomials[5] := <Matrix(Rationals(),[[0,0,0,-1],[1,0,0,-1],[0,1,0,-1],[0,0,1,-1]]),[R.1^2+R.1*R.3+2*R.1*R.4-R.2*R.3+R.2*R.4+R.4^2,R.1*R.2-R.1*R.4+R.2^2+2*R.2*R.3+R.3^2+R.3*R.4,R.1^2*R.3+2*R.1*R.2*R.3+R.1*R.3^2+R.2^2*R.3+R.2^2*R.4+R.2*R.3^2+2*R.2*R.3*R.4+R.2*R.4^2,R.1^2*R.2+R.1^2*R.4+R.1*R.2^2+2*R.1*R.2*R.4+2*R.1*R.3*R.4+R.1*R.4^2+R.3^2*R.4+R.3*R.4^2,R.1^3+3*R.1^2*R.2+2*R.1^2*R.3+2*R.1^2*R.4+R.1*R.2^2+2*R.1*R.2*R.3+2*R.1*R.2*R.4+R.1*R.3^2+2*R.1*R.3*R.4+R.2^2*R.3-R.2*R.4^2+R.3^2*R.4-R.3*R.4^2-R.4^3] where R:=PolynomialRing(Rationals(),4)>;
+inv_polynomials[8] := <Matrix(Rationals(),[[0,0,0,-1],[1,0,0,0],[0,1,0,0],[0,0,1,0]]),[R.1^2+R.2^2+R.3^2+R.4^2,R.1*R.2-R.1*R.4+R.2*R.3+R.3*R.4,R.1^4+R.2^4+R.3^4+R.4^4,R.1^2*R.3^2+R.2^2*R.4^2,R.1^3*R.2-R.1*R.4^3+R.2^3*R.3+R.3^3*R.4] where R:=PolynomialRing(Rationals(),4)>;
+inv_polynomials[9] := <Matrix(Rationals(),[[0,0,0,0,0,-1],[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,1,0,0,-1],[0,0,0,1,0,0],[0,0,0,0,1,0]]),[R.1^2+R.1*R.4+R.2^2+R.2*R.5+R.3^2+R.3*R.6+R.4^2+R.5^2+R.6^2,R.1*R.3-R.1*R.5+R.2*R.4-R.2*R.6+R.3*R.4+R.3*R.5+R.4*R.6,R.1*R.2-R.1*R.6+R.2*R.3+R.2*R.4+R.3*R.4+R.3*R.5+R.4*R.5+R.5*R.6,R.1^2*R.4+R.1*R.4^2+R.2^2*R.5+R.2*R.5^2+R.3^2*R.6+R.3*R.6^2,R.1^2*R.3+R.1^2*R.6-R.1*R.2^2+2*R.1*R.3*R.4+R.1*R.5^2-R.2*R.3^2+2*R.2*R.4*R.5+R.2*R.6^2+2*R.3*R.5*R.6-R.4^2*R.6+R.4*R.5^2+R.5*R.6^2,R.1^3+3*R.1^2*R.4+R.2^3+3*R.2^2*R.5+R.3^3+3*R.3^2*R.6-R.4^3-R.5^3-R.6^3,R.1^2*R.2+R.1^2*R.5+2*R.1*R.2*R.4-R.1*R.3^2+R.1*R.6^2+R.2^2*R.3+R.2^2*R.6+2*R.2*R.3*R.5+2*R.3*R.4*R.6-R.4^2*R.5+R.4*R.6^2-R.5^2*R.6] where R:=PolynomialRing(Rationals(),6)>;
+inv_polynomials[16] := <Matrix(Rationals(),[[0,0,0,0,0,0,0,-1],[1,0,0,0,0,0,0,0],[0,1,0,0,0,0,0,0],[0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0],[0,0,0,0,0,1,0,0],[0,0,0,0,0,0,1,0]]),[-R.1*R.2+R.1*R.8-R.2*R.3-R.3*R.4-R.4*R.5-R.5*R.6-R.6*R.7-R.7*R.8,R.1^2+R.2^2+R.3^2+R.4^2+R.5^2+R.6^2+R.7^2+R.8^2,-R.1*R.3+R.1*R.7-R.2*R.4+R.2*R.8-R.3*R.5-R.4*R.6-R.5*R.7-R.6*R.8,-R.1*R.4+R.1*R.6-R.2*R.5+R.2*R.7-R.3*R.6+R.3*R.8-R.4*R.7-R.5*R.8,R.1^3*R.2-R.1*R.8^3+R.2^3*R.3+R.3^3*R.4+R.4^3*R.5+R.5^3*R.6+R.6^3*R.7+R.7^3*R.8,R.1^4+R.2^4+R.3^4+R.4^4+R.5^4+R.6^4+R.7^4+R.8^4,-R.1^3*R.5+R.1*R.5^3-R.2^3*R.6+R.2*R.6^3-R.3^3*R.7+R.3*R.7^3-R.4^3*R.8+R.4*R.8^3,R.1^2*R.2*R.8-R.1*R.2^2*R.3+R.1*R.7*R.8^2-R.2*R.3^2*R.4-R.3*R.4^2*R.5-R.4*R.5^2*R.6-R.5*R.6^2*R.7-R.6*R.7^2*R.8,R.1*R.2*R.4*R.5+R.1*R.2*R.6*R.7-R.1*R.3*R.4*R.8-R.1*R.5*R.6*R.8+R.2*R.3*R.5*R.6+R.2*R.3*R.7*R.8+R.3*R.4*R.6*R.7+R.4*R.5*R.7*R.8] where R:=PolynomialRing(Rationals(),8)>;
+
+/*
 for n in [2,3,4,5,8,9,16] do
     A:=Transpose(CompanionMatrix(CyclotomicPolynomial(n)));  
     A:=ChangeRing(A,Rationals());  
@@ -66,5 +73,4 @@ for n in [2,3,4,5,8,9,16] do
     inv_polynomials[n]:=<A,S>;
 
 end for;
-
-
+*/

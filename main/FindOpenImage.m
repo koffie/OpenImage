@@ -14,13 +14,292 @@
     return an error if E happens to come from an unknown rational point on a high genus modular curve that we missed. ]
 */
 
+inv_polynomials:=AssociativeArray();
 
-load "../precomputation/ComputeFrobData.m";  // Loads all functions we need (may take a bit!)
+inv_polynomials[2] := <Matrix(Rationals(),[[-1]]),[R.1^2] where R:=PolynomialRing(Rationals(),1)>;
+inv_polynomials[3] := <Matrix(Rationals(),[[0,-1],[1,-1]]),[R.1^2+R.1*R.2+R.2^2,R.1^2*R.2+R.1*R.2^2,R.1^3+3*R.1^2*R.2-R.2^3] where R:=PolynomialRing(Rationals(),2)>;
+inv_polynomials[4] := <Matrix(Rationals(),[[0,-1],[1,0]]),[R.1^2+R.2^2,R.1^2*R.2^2,2*R.1^3*R.2-2*R.1*R.2^3] where R:=PolynomialRing(Rationals(),2)>;
+inv_polynomials[5] := <Matrix(Rationals(),[[0,0,0,-1],[1,0,0,-1],[0,1,0,-1],[0,0,1,-1]]),[R.1^2+R.1*R.3+2*R.1*R.4-R.2*R.3+R.2*R.4+R.4^2,R.1*R.2-R.1*R.4+R.2^2+2*R.2*R.3+R.3^2+R.3*R.4,R.1^2*R.3+2*R.1*R.2*R.3+R.1*R.3^2+R.2^2*R.3+R.2^2*R.4+R.2*R.3^2+2*R.2*R.3*R.4+R.2*R.4^2,R.1^2*R.2+R.1^2*R.4+R.1*R.2^2+2*R.1*R.2*R.4+2*R.1*R.3*R.4+R.1*R.4^2+R.3^2*R.4+R.3*R.4^2,R.1^3+3*R.1^2*R.2+2*R.1^2*R.3+2*R.1^2*R.4+R.1*R.2^2+2*R.1*R.2*R.3+2*R.1*R.2*R.4+R.1*R.3^2+2*R.1*R.3*R.4+R.2^2*R.3-R.2*R.4^2+R.3^2*R.4-R.3*R.4^2-R.4^3] where R:=PolynomialRing(Rationals(),4)>;
+inv_polynomials[8] := <Matrix(Rationals(),[[0,0,0,-1],[1,0,0,0],[0,1,0,0],[0,0,1,0]]),[R.1^2+R.2^2+R.3^2+R.4^2,R.1*R.2-R.1*R.4+R.2*R.3+R.3*R.4,R.1^4+R.2^4+R.3^4+R.4^4,R.1^2*R.3^2+R.2^2*R.4^2,R.1^3*R.2-R.1*R.4^3+R.2^3*R.3+R.3^3*R.4] where R:=PolynomialRing(Rationals(),4)>;
+inv_polynomials[9] := <Matrix(Rationals(),[[0,0,0,0,0,-1],[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,1,0,0,-1],[0,0,0,1,0,0],[0,0,0,0,1,0]]),[R.1^2+R.1*R.4+R.2^2+R.2*R.5+R.3^2+R.3*R.6+R.4^2+R.5^2+R.6^2,R.1*R.3-R.1*R.5+R.2*R.4-R.2*R.6+R.3*R.4+R.3*R.5+R.4*R.6,R.1*R.2-R.1*R.6+R.2*R.3+R.2*R.4+R.3*R.4+R.3*R.5+R.4*R.5+R.5*R.6,R.1^2*R.4+R.1*R.4^2+R.2^2*R.5+R.2*R.5^2+R.3^2*R.6+R.3*R.6^2,R.1^2*R.3+R.1^2*R.6-R.1*R.2^2+2*R.1*R.3*R.4+R.1*R.5^2-R.2*R.3^2+2*R.2*R.4*R.5+R.2*R.6^2+2*R.3*R.5*R.6-R.4^2*R.6+R.4*R.5^2+R.5*R.6^2,R.1^3+3*R.1^2*R.4+R.2^3+3*R.2^2*R.5+R.3^3+3*R.3^2*R.6-R.4^3-R.5^3-R.6^3,R.1^2*R.2+R.1^2*R.5+2*R.1*R.2*R.4-R.1*R.3^2+R.1*R.6^2+R.2^2*R.3+R.2^2*R.6+2*R.2*R.3*R.5+2*R.3*R.4*R.6-R.4^2*R.5+R.4*R.6^2-R.5^2*R.6] where R:=PolynomialRing(Rationals(),6)>;
+inv_polynomials[16] := <Matrix(Rationals(),[[0,0,0,0,0,0,0,-1],[1,0,0,0,0,0,0,0],[0,1,0,0,0,0,0,0],[0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0],[0,0,0,0,0,1,0,0],[0,0,0,0,0,0,1,0]]),[-R.1*R.2+R.1*R.8-R.2*R.3-R.3*R.4-R.4*R.5-R.5*R.6-R.6*R.7-R.7*R.8,R.1^2+R.2^2+R.3^2+R.4^2+R.5^2+R.6^2+R.7^2+R.8^2,-R.1*R.3+R.1*R.7-R.2*R.4+R.2*R.8-R.3*R.5-R.4*R.6-R.5*R.7-R.6*R.8,-R.1*R.4+R.1*R.6-R.2*R.5+R.2*R.7-R.3*R.6+R.3*R.8-R.4*R.7-R.5*R.8,R.1^3*R.2-R.1*R.8^3+R.2^3*R.3+R.3^3*R.4+R.4^3*R.5+R.5^3*R.6+R.6^3*R.7+R.7^3*R.8,R.1^4+R.2^4+R.3^4+R.4^4+R.5^4+R.6^4+R.7^4+R.8^4,-R.1^3*R.5+R.1*R.5^3-R.2^3*R.6+R.2*R.6^3-R.3^3*R.7+R.3*R.7^3-R.4^3*R.8+R.4*R.8^3,R.1^2*R.2*R.8-R.1*R.2^2*R.3+R.1*R.7*R.8^2-R.2*R.3^2*R.4-R.3*R.4^2*R.5-R.4*R.5^2*R.6-R.5*R.6^2*R.7-R.6*R.7^2*R.8,R.1*R.2*R.4*R.5+R.1*R.2*R.6*R.7-R.1*R.3*R.4*R.8-R.1*R.5*R.6*R.8+R.2*R.3*R.5*R.6+R.2*R.3*R.7*R.8+R.3*R.4*R.6*R.7+R.4*R.5*R.7*R.8] where R:=PolynomialRing(Rationals(),8)>;
+
+// We precompute some traces of Frobenius for elliptic curves over finite fields.  Useful when working with many elliptic curves.
+trace_primes:=[p: p in PrimesUpTo(256) | p ne 2];
+trace_of_frobenius:=AssociativeArray();
+for p in trace_primes do
+    trace_of_frobenius[p]:=AssociativeArray();
+    for j in GF(p) do
+        if j eq 0 or j eq 1728 then
+            continue j;
+        end if;
+        trace_of_frobenius[p][j]:=TraceOfFrobenius(EllipticCurveWithjInvariant(j));  
+    end for;
+end for;
+
+intrinsic OpenImageContext(datadir::MonStgElt) -> Assoc
+{ Loads precomputed data used to compute adelic images from the specified directory. }
+    if datadir[#datadir] ne "/" then datadir cat:= "/"; end if;
+    I:=Open(datadir cat "agreeable.dat", "r"); 
+    X:=AssociativeArray();
+    repeat
+        b,y:=ReadObjectCheck(I);
+        if b then
+            X[y`key]:=y;
+        end if;
+    until not b;
+    // Setting some entries of X
+    for k in Keys(X) do
+        if X[k]`genus le 1 then
+            X[k]`map_to_jline:=[*MapTojLine(X,k)*];
+        end if;
+    end for;
+    for k in Keys(X) do
+        if X[k]`genus eq 0 and assigned X[k]`cyclic_models then
+            K<x>:=FunctionField(X[k]`C);
+            X[k]`cyclic_models:=[ [Evaluate(f,x): f in b]  :  b in X[k]`cyclic_models ];
+        end if;
+        if X[k]`genus eq 1 and assigned X[k]`cyclic_models then
+            K<x,y>:=FunctionField(X[k]`C);
+            X[k]`cyclic_models:=[ [Evaluate(f[1]/f[2],[x,y,1]): f in b]  :  b in X[k]`cyclic_models ];
+        end if;
+    end for;
+    // Load precomputed Frobenius data for recognizing Galois images.
+    I:=Open(datadir cat "frob_data.dat", "r"); 
+    b,prime_bound:=ReadObjectCheck(I);
+    //prime_bound:=5;
+    cyclic_frobenius:=AssociativeArray();
+    repeat
+        b,k:=ReadObjectCheck(I);
+        b,a:=ReadObjectCheck(I);
+        b,S:=ReadObjectCheck(I);
+        if b then
+            if k notin Keys(cyclic_frobenius) then
+                cyclic_frobenius[k]:=AssociativeArray();
+            end if;
+            cyclic_frobenius[k][a]:=S;
+        end if;
+    until not b;
+
+
+    // Load agreeable closure info for exceptional j-invariants
+    ExceptionalAgreeableClosures:=[];
+    I:=Open(datadir cat "agreeable_closures_exceptional.dat", "r");
+    repeat
+        b,y:=ReadObjectCheck(I);
+        if b then
+            ExceptionalAgreeableClosures:=ExceptionalAgreeableClosures cat [y];
+        end if;
+    until not b;
+
+    // Load Galois image info for exceptional j-invariants
+    ExceptionalImages:=[];
+    I:=Open(datadir cat "exceptional_images.dat", "r");
+    repeat
+        b,y:=ReadObjectCheck(I);
+        if b then
+            ExceptionalImages:=ExceptionalImages cat [y];
+        end if;
+    until not b;
+
+    //array for keeping track of our modular curves with prime power level and genus at most 1
+    agreeable_groups_prime_power_level:=AssociativeArray();
+    P:=[2,3,5,7,11,13];
+    for ell in P do
+        keys_ell:=[k: k in Keys(X) | Set(PrimeDivisors(X[k]`N)) subset {ell} and X[k]`is_agreeable and X[k]`genus le 1];
+        ind_ell :=[X[k]`index: k in keys_ell];
+        ParallelSort(~ind_ell, ~keys_ell);
+        agreeable_groups_prime_power_level[ell]:=keys_ell;
+    end for;
+    // "agreeable_groups_prime_power_level[ell]"  keeps track of modular curves with level a power of ell,
+    // ordered by increasing degree over the j-line.
+
+    // array for keeping track of our modular curves that arise from "unentangled" groups and having infinitely many rational points
+    unentangled_groups:=AssociativeArray();
+    keys0:=[k: k in Keys(X) | X[k]`genus le 1 and X[k]`has_infinitely_many_points and X[k]`is_entangled eq false];
+    for k in keys0 do
+        keys:=[m: m in Keys(X) | &and[m[i] eq k[i] : i in [1..#k]]];
+        ind :=[X[m]`index/X[k]`index: m in keys];
+        ParallelSort(~ind, ~keys);
+        unentangled_groups[k]:=keys;
+    end for;
+
+    base:= [k: k in Keys(X) | X[k]`N eq 1][1]; //label of the j-line, equivalently, the group GL(2,Zhat).
+
+    Z := AssociativeArray();
+    Z["X"] := X;
+    Z["cyclic_frobenius"] := cyclic_frobenius;
+    Z["prime_bound"] := prime_bound;
+    Z["ExceptionalAgreeableClosures"] := ExceptionalAgreeableClosures;
+    Z["ExceptionalImage"] := ExceptionalImages;
+    Z["agreeable_groups_prime_power_level"] := agreeable_groups_prime_power_level;
+    Z["unentangled_groups"] := unentangled_groups;
+    Z["base"] := base;
+    return Z;
+end intrinsic;
+
+function ComputeFrobData0(n,p,c)
+    /*
+        Input:
+            - n>1 is an integer; for now, in {2,3,4,5,8,9,16}
+            - p is a prime
+            - c is a sequence of elements in the finite field F_p
+
+        Let m=phi(n). Let C be the companion matrix of the n-th cyclotomic polynomial.          
+        We make use of certain sequence F of homogeneous polynomials in Z[x_1,..,x_m], that depend only on n, which 
+        are given in the file "cyclic_invariant_polynomials.m".  The action of C on the polynomial ring fixes
+        the polynomials F_i.    The sequence c of elements in F_p should have the same length as F.
+
+        The subvariety of Z of AA^m over F_p defined by the polynomials F[i]-c[i] has an action of C.
+
+        Output:  a boolean b and an integer e
+            Suppose b is true. Then Z has dimension 0, degree n, and C acts simply transitively on the points of Z 
+            (over an algebraic closure of F_p).  For any point of Z, applying the p-power Frobenius is the same as
+            acting by C^e.
+    */  
+
+    if p eq 2 or n mod p eq 0 then
+        return false, 0;
+    end if;
+
+    c:=[GF(p)!a: a in c];
+    assert n in Keys(inv_polynomials);
+    m:=EulerPhi(n);
+
+    F:=inv_polynomials[n][2];   // Our polynomials F
+ 
+    R<[x]>:=PolynomialRing(GF(p),m);
+    psi:=[R!F[i]- c[i]: i in [1..#F]];
+
+    // Want equations to define a reduced scheme of dimension 0 and degree n
+    AA:=AffineSpace(GF(p),m);
+
+    Z:=Scheme(AA,psi);
+
+    if Dimension(Z) ne 0 or Degree(Z) ne n or IsReduced(Z) eq false then 
+        return false, 0; 
+    end if;
+
+    // Choose an irreducible component Z1 of Z
+    Z1:=IrreducibleComponents(Z)[1];
+
+    d:=Degree(Z1); 
+    FF:=GF(p^d); // smallest field over which Z1 has a FF-point
+    P:=Rep( Points(ChangeRing(Z1,FF))); // pick a point
+
+    C:=Transpose(CompanionMatrix(CyclotomicPolynomial(n)));  // transpose due to Magma's convention
+    Cp:=ChangeRing(C,FF); // Matrix that should act simply transitively on FF-points of Z             
+
+    Z:=ChangeRing(Z,FF);
+    P:=Z!Eltseq(P); // We chose an FF-point of Z
+    P_frob:=Z![a^p: a in Eltseq(P)];  // Apply p-th power Frobenius to P
+
+    I:=[i: i in [0..n-1] | Matrix([Eltseq(P)])*Cp^i eq Matrix([Eltseq(P_frob)])];
+    assert #I eq 1;
+    e:=I[1]; //  Cp^e tales P to P_frob
+
+    return true, e;
+end function;
+
+
+function ComputeFrobData(X,k,i, p : pt:=[])
+    /*  
+        k is a key of the array X of modular curves.  
+    
+        Set M=X[k]; it is a modular curve over Q of genus at most 1 with a rational point.
+        Assume that the sequences M`cyclic_models and M`cyclic_invariants are both defined and consist of at least i elements.
+
+        M`cyclic_models[i] defines a curve Y and a morphism Y->M; the morphism is Galois with Galois group 
+        cyclic of prime power order n:=M`cyclic_invariants[i].    The model Y is given by equations of the form
+            F(x_1,..,x_m)=c_F
+        with F homogeneous polynomials and c_F in the function field of M.
+
+        The polynomials F depend only on n and they are given in the file "cyclic_invariant_polynomials.m".  
+        Let C be the companion matrix of the n-th cyclotomic polynomial.    The matrix
+        C acts on our model by acting on the x_i.  Moreover, this action of C generates the Galois group of Y->M.
+
+        We have a prime p.  Assume M has good reduction at p.  Assuming p is large enough, we can reduce our model modulo 
+        p to get a cover of M modulo p that is still Galois with group generated by C.
+
+        For an Fp-point point t of M, assume that the equations
+            F(x_1,..,x_m)=c_F(t)
+        define a finite reduced scheme over F_p of order n with the group generated by C acting transitive on the Fbar_p-points.   
+        There is a unique nonnegative integer e<n such that p-power Frobenius and C^e act the same on the Fbar_p-points.
+
+        We return a set consisting of pairs <t,e> as above for the given prime.   We might not return all such pairs, but
+        the proportion of t in M(F_p) that appear as a first term will approach 1 as p grows.
+
+        [ When "pt" is set to be a nonempty sequence of rational points of our modular curve; we will limit t to
+          the reduction of points in this sequence]
+    
+    */
+
+    n:=X[k]`cyclic_invariants[i];
+    m:=EulerPhi(n);
+
+    cover:=X[k]`cyclic_models[i]; 
+
+    if  p eq 2 or n mod p eq 0 or (X[k]`genus eq 1 and p in BadPrimes(X[k]`C)) then
+        return {};  // bad cases; let's return nothing        
+    end if;
+
+    if #pt eq 0 then
+        // Find some points modulo p of our modular curve
+        S:=Points(ChangeRing(X[k]`C,GF(p))); 
+        if X[k]`genus eq 0 then
+            S:={P:P in S | P[2] ne 0};
+        else
+            S:={P:P in S | P[3] ne 0};
+        end if;
+    else
+        S:={ChangeRing(X[k]`C,GF(p))!pt};
+        S:={P: P in S | P[#pt] ne 0};
+    end if;
+
+    pairs:={};
+
+    R<[x]>:=PolynomialRing(GF(p),m);
+    for t in S do 
+        // try to specialize our cyclic covers at t; 
+        // if valid (i.e., we don't divide by 0), we keep in a sequence F
+        c:=[];
+        for j in [1..#cover] do
+            phi:=ProjectiveRationalFunction(cover[j]);    
+            num:=Numerator(phi);        
+            den:=Denominator(phi);  
+
+            b:=LCM([Denominator(a):a in Coefficients(den)]);
+            if b mod p eq 0 then continue t; end if;
+            num:=b*num; den:=b*den;
+            b:=LCM([Denominator(a):a in Coefficients(num)] cat [1]);
+            if b mod p eq 0 then continue t; end if;
+            num:=b*num; den:=b*den;
+
+            num:=ChangeRing(num,Integers());         
+            den:=ChangeRing(den,Integers());
+        
+            if Evaluate(den,Eltseq(t)) eq 0 then
+                continue t;
+            end if;
+
+            c:=c cat [Evaluate(num,Eltseq(t))/Evaluate(den,Eltseq(t))];
+        end for;
+
+        b,e:=ComputeFrobData0(n,p,c);
+
+        if not b then continue t; end if;
+        
+        pairs:=pairs join {<Eltseq(t),e>};
+    end for;
+
+    return pairs;
+end function;
+
+//load "../precomputation/ComputeFrobData.m";  // Loads all functions we need (may take a bit!)
 // In particular, this loads an array X consisting of modular curves corresponding to certain agreeable subgroups of GL(2,Zhat).
 // Except for a (conjecturally) finite number of j-invariants, they encode enough info to determine the Galois images of 
 // non-CM elliptic curves E/Q.
 
-base:= [k: k in Keys(X) | X[k]`N eq 1][1]; //label of the j-line, equivalently, the group GL(2,Zhat).
 
 // j-invariants of all CM elliptic curves over Q
 CM_jInvariants:={0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -32768, -884736, -884736000, -147197952000, -262537412640768000};
@@ -82,80 +361,6 @@ exceptionaljs := [
 elladic_exceptionaljs := { r[2] : r in exceptionaljs };
 assert elladic_exceptionaljs subset known_exceptional_jinvariants;
 
-
-//array for keeping track of our modular curves with prime power level and genus at most 1
-agreeable_groups_prime_power_level:=AssociativeArray();
-P:=[2,3,5,7,11,13];
-for ell in P do
-    keys_ell:=[k: k in Keys(X) | Set(PrimeDivisors(X[k]`N)) subset {ell} and X[k]`is_agreeable and X[k]`genus le 1];
-    ind_ell :=[X[k]`index: k in keys_ell];
-    ParallelSort(~ind_ell, ~keys_ell);
-    agreeable_groups_prime_power_level[ell]:=keys_ell;
-end for;
-// "agreeable_groups_prime_power_level[ell]"  keeps track of modular curves with level a power of ell,
-// ordered by increasing degree over the j-line.
-
-// array for keeping track of our modular curves that arise from "unentangled" groups and having infinitely many rational points
-unentangled_groups:=AssociativeArray();
-keys0:=[k: k in Keys(X) | X[k]`genus le 1 and X[k]`has_infinitely_many_points and X[k]`is_entangled eq false];
-for k in keys0 do
-    keys:=[m: m in Keys(X) | &and[m[i] eq k[i] : i in [1..#k]]];
-    ind :=[X[m]`index/X[k]`index: m in keys];
-    ParallelSort(~ind, ~keys);
-    unentangled_groups[k]:=keys;
-end for;
-
-
-// Load precomputed Frobenius data for recognizing Galois images.
-I:=Open("../data-files/frob_data.dat", "r"); 
-b,prime_bound:=ReadObjectCheck(I);
-//prime_bound:=5;
-cyclic_frobenius:=AssociativeArray();
-repeat
-	b,k:=ReadObjectCheck(I);
-    b,a:=ReadObjectCheck(I);
-    b,S:=ReadObjectCheck(I);
-    if b then
-        if k notin Keys(cyclic_frobenius) then
-            cyclic_frobenius[k]:=AssociativeArray();
-        end if;
-        cyclic_frobenius[k][a]:=S;
-    end if;
-until not b;
-
-
-// We precompute some traces of Frobenius for elliptic curves over finite fields.  Useful when working with many elliptic curves.
-trace_primes:=[p: p in PrimesUpTo(256) | p ne 2];
-trace_of_frobenius:=AssociativeArray();
-for p in trace_primes do
-    trace_of_frobenius[p]:=AssociativeArray();
-    for j in GF(p) do
-        if j eq 0 or j eq 1728 then
-            continue j;
-        end if;
-        trace_of_frobenius[p][j]:=TraceOfFrobenius(EllipticCurveWithjInvariant(j));  
-    end for;
-end for;
-
-// Load agreeable closure info for exceptional j-invariants
-ExceptionalAgreeableClosures:=[];
-I:=Open("../data-files/agreeable_closures_exceptional.dat", "r");
-repeat
-	b,y:=ReadObjectCheck(I);
-	if b then
-        ExceptionalAgreeableClosures:=ExceptionalAgreeableClosures cat [y];
-	end if;
-until not b;
-
-// Load Galois image info for exceptional j-invariants
-ExceptionalImages:=[];
-I:=Open("../data-files/exceptional_images.dat", "r");
-repeat
-	b,y:=ReadObjectCheck(I);
-	if b then
-        ExceptionalImages:=ExceptionalImages cat [y];
-	end if;
-until not b;
 
 
 //--------------------------------------------
@@ -371,7 +576,7 @@ end function;
 
 
 
-function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_uniformity_conjecture:=false, use_exceptional_data:=true)
+function FindAgreeableClosure(Z,j :bound:=80, Bound:=10^7, minimal:=true, assume_uniformity_conjecture:=false, use_exceptional_data:=true)
     /*
         Input: 
             j: the j-invariant of a non-CM elliptic curve E/Q.
@@ -404,6 +609,12 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
         in the normalizer of a nonsplit Cartan for all primes ell>13.   This can significantly speed up the computation since it will no
         longer requires factoring integers.
     */
+    X := Z["X"];
+    ExceptionalImages := Z["ExceptionalImage"];
+    ExceptionalAgreeableClosures := Z["ExceptionalAgreeableClosures"];
+    agreeable_groups_prime_power_level := Z["agreeable_groups_prime_power_level"];
+    unentangled_groups := Z["unentangled_groups"];
+    base := Z["base"];
 
     if use_exceptional_data and (j in known_exceptional_jinvariants and j in {t[1]: t in ExceptionalAgreeableClosures}) then
         assert exists(t){t: t in ExceptionalAgreeableClosures | t[1] eq j};
@@ -934,7 +1145,7 @@ function FindAgreeableClosure(j :bound:=80, Bound:=10^7, minimal:=true, assume_u
 end function;
 
 
-function ComputeGammaE(k,u,E)
+function ComputeGammaE(Z,k,u,E)
 
     /* 
         Input: 
@@ -964,6 +1175,9 @@ function ComputeGammaE(k,u,E)
                     gamma: (Z/MZ)^* -> A 
             which sends each d to A!a.
     */
+    X := Z["X"];
+    cyclic_frobenius := Z["cyclic_frobenius"];
+    prime_bound := Z["prime_bound"];
 
     BadPrimesE:=BadPrimes(E);
     L:=&*Set(BadPrimesE cat PrimeDivisors(#BaseRing(X[k]`Gc)));  
@@ -1059,7 +1273,7 @@ function ComputeGammaE(k,u,E)
             elif p gt prime_bound and not done then
                 // Computes extra values if the precomputed Frobenius data is insuffcient.
 
-                s:=ComputeFrobData(k,i, p : pt:=u_); 
+                s:=ComputeFrobData(X,k,i, p : pt:=u_); 
                 if #s ne 0 then
                     good_p:=true;
                     f:=Rep(s)[2];
@@ -1151,7 +1365,7 @@ end function;
 
 
 
-function ComputeHEGenerators(k,u,E: d0:=0)
+function ComputeHEGenerators(Z,k,u,E: d0:=0)
     
     /* 
         Input: 
@@ -1179,7 +1393,7 @@ function ComputeHEGenerators(k,u,E: d0:=0)
 
     */
 
-    
+    X := Z["X"];
     N:=#BaseRing(X[k]`Gc);
     if X[k]`N eq 1 then
         G:=GL(2,Integers(N));
@@ -1198,7 +1412,7 @@ function ComputeHEGenerators(k,u,E: d0:=0)
 
     A<[sigma]>:=AbelianGroup(X[k]`cyclic_invariants);
 
-    M,gamma_pairs:=ComputeGammaE(k,u,E);
+    M,gamma_pairs:=ComputeGammaE(Z,k,u,E);
 
     UM,iotaM:=UnitGroup(Integers(M));
     FA:=FreeAbelianGroup(#gamma_pairs); 
@@ -1415,11 +1629,8 @@ function ComputeLevelOfImageOfGalois(GE,G,Gc)
 end function;    
 
 
-
-
-
-
-function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
+intrinsic FindOpenImage(Z::Assoc, E::CrvEll[FldRat] : Bound:=10^8, find_level:=true, dual:=false) -> GrpMat[RngIntRes], RngIntElt, GrpMat[RngIntRes]
+{ Returns the image G of the adelic Galois representation of E as a subgroup of GL(2,Z/NZ) with N minimal (G is the full inverse image of this subgroup), the index of G in GL(2,Zhat), and the intersection of G with SL(2,Zhat) as a subgroup of SL(2,Z/MZ) with M minimal. } 
     /*
         Input:  E is a non-CM elliptic curve defined over Q.
 
@@ -1440,9 +1651,14 @@ function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
         If "find_level" is set to false, then N will only be a multiple of the level of G_E.   
         If "dual" is set to true, then the function works the same except now G_E is the image of the dual representation rho_E^*.     
     */
+    X := Z["X"];
+    ExceptionalImages := Z["ExceptionalImage"];
+    agreeable_groups_prime_power_level := Z["agreeable_groups_prime_power_level"];
+    unentangled_groups := Z["unentangled_groups"];
+    base := Z["base"];
 
     if dual then
-        G, index, H:= FindOpenImage(E : Bound:=Bound, find_level:=find_level, dual:=false);
+        G, index, H:= FindOpenImage(X, E : Bound:=Bound, find_level:=find_level, dual:=false);
         G:=sub<GL(2,BaseRing(G))| {Transpose(g): g in Generators(G)}>;
         H:=sub<SL(2,BaseRing(H))| {Transpose(g): g in Generators(H)}>;
         return G, index, H;
@@ -1457,7 +1673,7 @@ function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
     // The following finds an agreeable subgroup G that contains G_E and has the same commutator subgroup; 
     // it has label k in the array X and G is defined up to conjugacy in GL(2,Zhat).
 
-    nonexceptional, k, S:=FindAgreeableClosure(j : minimal:=false);
+    nonexceptional, k, S:=FindAgreeableClosure(Z,j : minimal:=false);
     // The "minimal" parameter set to false means that we don't need G to be the agreeable closure of G_E.  
 
     
@@ -1544,7 +1760,7 @@ function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
 
     u:=Rep(S0); // choose a point
 
-    N1,gens1:=ComputeHEGenerators(k,u,E);
+    N1,gens1:=ComputeHEGenerators(Z,k,u,E);
 
     GE:=sub<GL(2,Integers(N1)) | gens1>;
 
@@ -1578,10 +1794,12 @@ function FindOpenImage(E : Bound:=10^8, find_level:=true, dual:=false)
     HE:=sub<SL(2,BaseRing(HE))|{Transpose(g): g in Generators(HE)}>;
 
     return GE, X[k]`commutator_index, HE;
-end function;
+end intrinsic;
 
 
-function FindLevels(G,index,H)
+intrinsic FindLevels(G::GrpMat[RngIntRes],index::RngIntElt,H::GrpMat[RngIntRes]) -> SeqEnum[SeqEnum[RngIntElt]], List
+{ Given G, index, H returned by FindOpenImage(E), returns a sorted sequence of all pairs (d,i), ordered by increasing d, so that the image of G modulo d has index i in GL(2,Z/dZ) and G modulo e has index < i in GL(2,Z/eZ) for all proper divisors e of d,
+  followed by a sequence of the same length of the last one that describes the group obtained by taking the image of G modulo d and then intersecting with SL(2,ZdZ); it is given as a pair where the first value is the level and the second is a sequence of its generators mod the level. }
     /*  
         Consider a non-CM elliptic curve E/Q. 
         Input
@@ -1595,7 +1813,7 @@ function FindLevels(G,index,H)
                 index i in GL(2,Z/dZ) and G modulo e has index < i in GL(2,Z/eZ) for all proper divisors e of d.
             - a sequence of the same length of the last one that describes the group obtained by taking the 
               image of G modulo d and then intersecting with SL(2,ZdZ); it is given as a pair where the first
-              value is the level and thhe second is a sequence of its generators mod the level.
+              value is the level and the second is a sequence of its generators mod the level.
 
     */
     N:=#BaseRing(G);
@@ -1678,4 +1896,4 @@ function FindLevels(G,index,H)
     groups:=[sl2group[d]: d in D];
 
     return pairs0, groups;
-end function;
+end intrinsic;

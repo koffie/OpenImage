@@ -1,7 +1,8 @@
 // Contains our group theory functions for constructing and dealing with matrix groups; especially subgroups of GL(2,Z/N) and SL(2,Z/NZ).   
 // The most involved functions is for computing maximal agreeable subgroups.
 
-function LiftMatrix(A,n)
+intrinsic LiftMatrix(A::GrpMatElt[RngIntRes],n::RngIntElt) -> GrpMatElt[RngIntRes]
+{ A matrix B in M(2,Z) with det(B)=n whose reduction modulo N is A. }
  /* 
     Input: 
         A: matrix in GL(2,Z/NZ) with N>1,
@@ -32,7 +33,7 @@ function LiftMatrix(A,n)
 
     assert GL(2,Integers(N))!B eq A and Determinant(B) eq n;  // check!
     return B;
-end function;
+end intrinsic;
 
 function ExpressAsProductOfSL2AndUpperTriangular(A)
  /* 
@@ -77,7 +78,8 @@ function ExpressAsProductOfSL2AndUpperTriangular(A)
     return Matrix([[1,0],[0,1]]), A;
 end function;
 
-function crt(A,B,N1,N2)
+intrinsic crt(A::SeqEnum,B::SeqEnum,N1::RngIntElt,N2::RngIntElt) -> GrpMatElt[RngIntRes]
+{ A matrix C in GL(2,Z/N1*N2) whose image modulo N1 and N2 is A and B, respectively. }
     /* Input:
         N1, N2: integers greater than 1 which are relatively prime
         A: a matrix in GL(2,Z/N1)
@@ -90,9 +92,26 @@ function crt(A,B,N1,N2)
     A:=[Integers()!i: i in Eltseq(A)]; 
     B:=[Integers()!i: i in Eltseq(B)];
     return GL2![ CRT([A[i],B[i]],[N1,N2]) : i in [1..4]];
-end function;
+end intrinsic;
 
-function gl2Level(G : index:=0)
+intrinsic crt(A::GrpMatElt[RngIntRes],B::SeqEnum,N1::RngIntElt,N2::RngIntElt) -> GrpMatElt[RngIntRes]
+{ A matrix C in GL(2,Z/N1*N2) whose image modulo N1 and N2 is A and B, respectively. }
+    return crt(Eltseq(A),B,N1,N2);
+end intrinsic;
+
+intrinsic crt(A::SeqEnum,B::GrpMatElt[RngIntRes],N1::RngIntElt,N2::RngIntElt) -> GrpMatElt[RngIntRes]
+{ A matrix C in GL(2,Z/N1*N2) whose image modulo N1 and N2 is A and B, respectively. }
+    return crt(A,Eltseq(B),N1,N2);
+end intrinsic;
+
+intrinsic crt(A::GrpMatElt[RngIntRes],B::GrpMatElt[RngIntRes],N1::RngIntElt,N2::RngIntElt) -> GrpMatElt[RngIntRes]
+{ A matrix C in GL(2,Z/N1*N2) whose image modulo N1 and N2 is A and B, respectively. }
+    return crt(Eltseq(A),Eltseq(B),N1,N2);
+end intrinsic;
+
+intrinsic gl2Level(G::GrpMat[RngIntRes] : index:=0) -> RngIntElt
+{ The least positive divisor m of N such that G is the full inverse image of its reduction mod m.
+  The parameter "index" can be set to the index of G in GL(2,Z/NZ) if already computed. }
     /*  Input:
             G : subgroup of GL(2,Z/NZ) for some integer N>1   
         Output:    
@@ -117,9 +136,11 @@ function gl2Level(G : index:=0)
         end if;
     end for;
     return N;
-end function;
+end intrinsic;
 
-function sl2Level(G : index:=0)
+intrinsic sl2Level(G::GrpMat[RngIntRes] : index:=0) -> RngIntElt
+{ The least positive divisor m of N such that G is the full inverse image of its reduction mod m.
+ The parameter "index" can be set to the index of G in SL(2,Z/NZ) if already computed. }
     /*  Input:
             G : subgroup of SL(2,Z/NZ) for some integer N>1        
         Output:    
@@ -141,9 +162,10 @@ function sl2Level(G : index:=0)
         end if;
     end for;
     return N;
-end function;
+end intrinsic;
 
-function sl2Lift(H,m)
+intrinsic sl2Lift(H::GrpMat[RngIntRes], m::RngIntElt) -> GrpMat[RngIntRes]
+{ The full preimage of H in SL(2,Z/mZ) under the reduction modulo n map. }
     /* Input:
             H : a subgroup of SL(2,Z/nZ) for some n>1
             m : a positive integer that is a multiple of n
@@ -175,11 +197,12 @@ function sl2Lift(H,m)
 
     H1:=sub<SL2m| S join {g @@ pi: g in Generators(H)} >;
     return H1;
-end function;
+end intrinsic;
 
 
 
-function gl2Lift(G,m)
+intrinsic gl2Lift(G::GrpMat[RngIntRes], m::RngIntElt) -> GrpMat[RngIntRes]
+{ The full preimage of G in GL(2,Z/mZ) under the reduction modulo n map. }
     /* Input:
             G : a subgroup of GL(2,Z/nZ) for some n>1
             m : a positive integer that is a multiple of n
@@ -223,7 +246,7 @@ function gl2Lift(G,m)
     G_lift:=sub<GL(2,Integers(m)) | gens>;
 
     return G_lift;
-end function;
+end intrinsic;
 
 function FindCommutatorSubgroup(G)
     /* 

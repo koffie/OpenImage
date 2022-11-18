@@ -736,7 +736,20 @@ function EvaluateAtMonomialsOfDegree(F,d)
     return A;
 end function;
 
-function FindRelations(F,d)
+intrinsic FindRelations(F::SeqEnum,d::RngIntElt) -> SeqEnum
+{ Input:   
+        F:  a finite sequence of modular forms  (each modular form is given as a sequence of q-expansions 
+            corresponding to the different cusps of the underlying modular curve). 
+            We further assume all the q-expansions have coefficients in some Z[zeta_N].
+        d:  a positive integer
+
+    We have F=[f_1,..,f_n].  Let V be the Q-vector space consisting of homomogeneous polynomials P in Q[x_1,..,x_n]
+    of degree d such that P(f_1,..,f_n)=0.
+
+    Output: a Q-basis of V.
+
+    (Warning: if not enough terms of the q-expansions are given, then V may be larger than expected.)
+}
     /*
     Input:   
         F:  a finite sequence of modular forms  (each modular form is given as a sequence of q-expansions 
@@ -780,27 +793,27 @@ function FindRelations(F,d)
     mon:=[ &*[x[i]^a[i]:i in [1..n]] : a in mon ];
     psi:=[ &+[L[i,j]*mon[j]: j in [1..#mon]] : i in [1..Nrows(L)] ];
     return psi;
-end function;
+end intrinsic;
 
-function FindCanonicalModel(M, prec)
-    /*  Input:       
-                M: a record M type "ModularCurveRec" (for example produced as output of CreateModularCurveRec) that 
+intrinsic FindCanonicalModel(M::Rec, prec::RngIntElt) -> BoolElt, SeqEnum, SeqEnum
+{       Input:       
+                M: a record of type ModularCurveRec (for example produced as output of CreateModularCurveRec) that 
                    corresponds to a modular curve X_G with genus g at least 3.
                 prec: a positive integer
 
-        The integer "prec" is used in the computation of modular forms.  A larger value will result in more terms of the q-expansion
+        The integer prec is used in the computation of modular forms.  A larger value will result in more terms of the q-expansion
         being computed.        
 
         Output:            
-                - a boolean "flag"
-                - a sequence "psi" of homogeneous polynomials in Q[x_1,..,x_g].
-                - a sequence F of g modular forms that give a Q-basis for the subspace of cusps forms in M_{k,G}.
+                - a boolean flag
+                - a sequence psi of homogeneous polynomials in Q[x_1,..,x_g].
+                - a sequence F of g modular forms that give a Q-basis for the subspace of cusps forms in M_(k,G).
                 
             The sequence F defines the canonical map X_G -> P^(g-1)_Q; the image is a curve C which is defined by the equations psi.
-            If the boolean "flag" is true, then the canonical map is an embedding and the output is correct.
-            If the boolean "flag" is false, then the canonical map is probably not an embedding (i.e., X_G is probably hyperelliptic);
-            the output will be correct assuming "prec" is large enough but the function doesn't prove this.
-    */  
+            If the boolean flag is true, then the canonical map is an embedding and the output is correct.
+            If the boolean flag is false, then the canonical map is probably not an embedding (i.e., X_G is probably hyperelliptic);
+            the output will be correct assuming prec is large enough but the function does not prove this.
+}  
     g:=M`genus;
     error if g lt 3, "Curve must have genus at least 3";
 
@@ -881,7 +894,7 @@ function FindCanonicalModel(M, prec)
     psi:=I2 cat J;
 
     return true, psi, F; 
-end function;
+end intrinsic;
 
 function FindModelOfXG(M, prec : compute_all:=true, G0:=1) 
     /*  Input:       
@@ -2390,7 +2403,8 @@ function FindSerreTypeModel(M0,M,prec)
     return M;
 end function;
 
-function MapTojLine(X,k)
+intrinsic MapTojLine(X::Assoc,k::SeqEnum) -> MapSch
+{ The morphism from our explicit model X[k]`C of the modular curve with key k to the j-line P^1_Q. }
     /*
         Input:  Let X be an associative array of modular curves that, except for the j-line, map down to a smaller degree modular curve.
                 Let k be a key of X corresponding to a modular curve.
@@ -2408,7 +2422,7 @@ function MapTojLine(X,k)
     end while;
 
     return J;
-end function;
+end intrinsic;
 
 function AutomorphismOfModularForms(M,F,g : wt:=0)
     /*  Input:

@@ -141,19 +141,19 @@ ModularCurveRec := recformat<
 */
   	     
 		     
-function CreateModularCurveRec(N, gens  : use_minimal_level:=true)   
- /*
+intrinsic CreateModularCurveRec(N::RngIntElt, gens::SeqEnum  : use_minimal_level:=true) -> Rec
+{
     Input:
 	    N       : a postitive integer
-	    gens    : a set of generators for a subgroup G of GL(2,Z/NZ)
+	    gens    : a sequence of generators for a subgroup G of GL(2,Z/NZ)
     Output:  
-        A record of type "ModularCurveRec" with the following entries computed: 
+        A record of type ModularCurveRec with the following entries computed: 
             N, gens, G, H, genus, v2, v3, vinf, sl2level, level, index, degree,  cusps, widths, regular, is_entangled, trdet. 
             
     Note: when N=1 only some of these entries are computed; Magma does not like matrices with entries in Z/(1).
 
-    When "use_minimal_level" is true, we replace N with the level of G
- */
+    When use_minimal_level is true, we replace N with the level of G
+ }
 
 
     if N ne 1 then
@@ -222,7 +222,7 @@ function CreateModularCurveRec(N, gens  : use_minimal_level:=true)
     X`trdet:= { [Trace(C[3]),Determinant(C[3])] : C in ConjugacyClasses(G) };
 
     return X;
-end function;
+end intrinsic;
 
 function CreateModularCurveRec0(G : use_minimal_level:=true)  
     // Same as function "CreateModularCurveRec" except now the group is given directly

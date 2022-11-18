@@ -1535,7 +1535,7 @@ function FindMorphismBetweenModularCurves(M,M0,g)
     x2:=ConvertModularFormExpansions(M, M0, g^(-1), x1);
     y2:=ConvertModularFormExpansions(M, M0, g^(-1), y1);
     _, phi1:=FindRelationElliptic(M,x2);
-    _. phi2:=FindRelationElliptic(M,y2);
+    _, phi2:=FindRelationElliptic(M,y2);
     phi1:=ProjectiveRationalFunction(phi1); 
     phi2:=ProjectiveRationalFunction(phi2); 
 

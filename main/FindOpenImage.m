@@ -38,7 +38,7 @@ for p in trace_primes do
 end for;
 
 intrinsic OpenImageContext(datadir::MonStgElt) -> Assoc
-{ Loads precomputed data used to compute adelic images from the specified directory. }
+{ Loads precomputed data from the specified directoyr that can be used to compute adelic images of non-CM elliptic curves over Q. }
     if datadir[#datadir] ne "/" then datadir cat:= "/"; end if;
     I:=Open(datadir cat "agreeable.dat", "r"); 
     X:=AssociativeArray();
@@ -1653,9 +1653,6 @@ intrinsic FindOpenImage(Z::Assoc, E::CrvEll[FldRat] : Bound:=10^8, find_level:=t
     */
     X := Z["X"];
     ExceptionalImages := Z["ExceptionalImage"];
-    agreeable_groups_prime_power_level := Z["agreeable_groups_prime_power_level"];
-    unentangled_groups := Z["unentangled_groups"];
-    base := Z["base"];
 
     if dual then
         G, index, H:= FindOpenImage(X, E : Bound:=Bound, find_level:=find_level, dual:=false);

@@ -238,7 +238,8 @@ function GL2Genus(G)
     return M`genus;
 end function;
 
-function FindCuspPair(M,A)
+intrinsic FindCuspPair(M::Rec, A::GrpMatElt) -> SeqEnum, RngIntElt
+{}
     /* Consider a modular curve M=X_G given by a subgroup G of GL_2(Z/NZ).  
        Let H be the intersection of G with SL(2,Z/NZ).    
 
@@ -261,7 +262,7 @@ function FindCuspPair(M,A)
         end for;
         j:=j+1;
     until false;
-end function;
+end intrinsic;
 
 function EisensteinFormsWeight1(N, prec) 
  /*
@@ -432,7 +433,8 @@ function SimplifyModularFormBasis(M,F)
     return FF;
 end function;
 
-function FindModularForms(k,M,prec)   
+intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
+{}
  /*
     Input   k:      an integer > 1,
             M:      a record M type "ModularCurveRec" (for example produced as output of CreateModularCurveRec) associated to a group G 
@@ -638,7 +640,7 @@ function FindModularForms(k,M,prec)
     
     M`F:=FF;
     return M;
-end function;
+end intrinsic;
 
 function FindModularFormsWithVanishingConditions(M,mult)
  /* Input:  
@@ -697,10 +699,11 @@ function FindModularFormsWithVanishingConditions(M,mult)
     return M;
 end function;
 
-function FindCuspForms(M)
+intrinsic FindCuspForms(M::Rec) -> Rec
+{}
     // Applies "FindModularFormsWithVanishingConditions" with mult:=[1,1,...,1].
     return FindModularFormsWithVanishingConditions(M,[1: i in [1..#M`cusps]]);
-end function;
+end intrinsic;
 
 function EvaluateAtMonomialsOfDegree(F,d) 
     /*  Input 
@@ -1343,7 +1346,8 @@ function FindRelationRational(M,j)
     return phi;
 end function;
 
-function FindRelationElliptic(M,f)
+intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> Any
+{}
     /* Input:
                 M:  a record M type "ModularCurveRec" (for example produced as output of CreateModularCurveRec) that 
                     corresponds to a modular curve X_G.  
@@ -1453,7 +1457,7 @@ function FindRelationElliptic(M,f)
     end if;
 
     return phi;
-end function;
+end intrinsic;
 
 function FindMorphismBetweenModularCurves(M,M0,g)
     /*  

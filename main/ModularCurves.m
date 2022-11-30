@@ -1,6 +1,12 @@
+// This is a modification of David Zywina's "ModularCurves.m".
+// The parameter mult is now part of ModularCurveRec.
+// When a space of modular forms is computed, the lower bounds on order of vanishing at each
+// cusp is now stored. 
+
 // This contains our basic functions for working with modular forms and modular curves.
 // Assumes that "GL2GroupTheory.m" has been loaded already.     
 
+import "GL2GroupTheory.m" : gl2Level, sl2Level, LiftMatrix, gl2Lift;
 
 
 // A record of type "ModularCurveRec" encodes information about the curve X_G where G is a subgroup of GL(2,Z/NZ) with 
@@ -13,9 +19,9 @@ ModularCurveRec := recformat<
         cyclic_invariants, cyclic_models, cyclic_generators, cover_with_same_commutator_subgroup, psi :SeqEnum,   
     has_point, has_infinitely_many_points, has_nonCM_point, is_agreeable, is_entangled, extraneous, is_serre_type_model: BoolElt,                                                              
     G, H, Hc, Gc :GrpMat,    
-    Hc_gen: SeqEnum,                      
+    Hc_gen, mult: SeqEnum,                      
     C:Crv, 
-    map_to_jline, pi :List,
+    map_to_jline, pi: List,
     sturm: FldRatElt >;	 
 
 /*                            
@@ -447,7 +453,8 @@ intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
     Remark: This function was designed to work well (and tested) in the case where det(G)=(Z/NZ)^*.  Further optimizations are certainly possible in other cases.    
  */ 
     M`k:=k; 
-    N:=M`N; 
+    N:=M`N;
+    M`mult := [ 0 : i in [1..M`vinf]];
     error if N eq 1, "FindModularForms not implemented when N=1.";  // This case can be easily handled by Magma's current functions since we have only one cusp
  
     GL2:=GL(2,Integers(N));
@@ -656,6 +663,8 @@ function FindModularFormsWithVanishingConditions(M,mult)
     N:=M`N;
     cusps:=M`cusps;
     widths:=M`widths;
+    M`mult := mult;
+
      
     error if &or[m lt 0: m in mult], "Multiplicities need to be positive."; 
     if &and[m eq 0: m in mult] or #M`F eq 0 then M`F0:=M`F; return M; end if;  // nothing to compute
@@ -955,6 +964,7 @@ intrinsic FindModelOfXG(M::Rec, prec::RngIntElt : compute_all:=true, G0:=1) -> R
             M`F0:=F;
             M`psi:=psi;
             M`has_infinitely_many_points:=false;  // by Faltings
+            M`mult := [ 1 : i in [1..M`vinf]];
             return M;
         end if;
     end if;
@@ -1199,7 +1209,6 @@ intrinsic FindModelOfXG(M::Rec, prec::RngIntElt : compute_all:=true, G0:=1) -> R
         end if;
 
         // Our genus 1 curve X has a Q-point P0.
-
         E0,pi0:=EllipticCurve(X,P0);
         E,pi1:=MinimalModel(E0);
         pi:=Expand(pi0*pi1);  // Isomorphism X->E sending P0 to 0.
@@ -1346,7 +1355,7 @@ function FindRelationRational(M,j)
     return phi;
 end function;
 
-intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> Any
+intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> BoolElt, Any
 {}
     /* Input:
                 M:  a record M type "ModularCurveRec" (for example produced as output of CreateModularCurveRec) that 
@@ -1358,6 +1367,7 @@ intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> Any
                 f:  An element of Q(X_G).   We assume that all the poles of f occur at cusps or that that the values it
                     takes at cusps are distinct from the values it takes at noncuspidal points.
     Output:
+            A boolean, whether we were successful
             A rational function phi in Q(E)=Q(x,y) so that phi(x,y)=f.
     */  
 
@@ -1373,13 +1383,14 @@ intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> Any
 
         // easiest case is that f is constant!
         if &and[ IsWeaklyZero(f[j]-c): j in [1..vinf]] then
-            return c;   
+            return true, c;   
         end if;
 
         // otherwise use assumption on j to force only poles at cusps        
         f:=[1/(f[j]-c): j in [1..vinf] ];
-        u:=FindRelationElliptic(M,f);
-        return 1/u+Parent(u)!c;
+        success, u:=FindRelationElliptic(M,f);
+	if not success then return false, _; end if;
+        return true, 1/u+Parent(u)!c;
     end if;
 
     K:=Compositum(BaseRing(Parent(x0[1])),BaseRing(Parent(f[1])));
@@ -1410,9 +1421,8 @@ intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> Any
 
     L<t>:=FunctionField(F);
     phi:=t;
-
+		       
     while &or[Valuation(f[j]) lt 0 : j in [1..vinf]] or Valuation(f[i]) le 0 do   
-
         // If we find a pole at any cusp besides the i-th cusp, we multiply f by x1-c for some c, so that
         //   the order of the pole is reduced (and the pole at the i-th cusp is increased)
         J:=[j: j in [1..vinf] | j ne i and Valuation(f[j]) lt 0];
@@ -1422,14 +1432,23 @@ intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> Any
             f:=[(x1[j]-c)*f[j]: j in [1..vinf]];
             phi0:=1/(h[1]-c)*t;
             phi:=Evaluate(phi,phi0);
+	else
+	    if Valuation(f[i]) eq -e then
+		// Need more terms in q-expansion
+		return false, _;
+	    end if;
         end if;
 
         // We now subtract from f polynomials in x1 and y1 so that at the i-th cusp we either have a pole of
         // order 1 or a zero.
-        while Valuation(f[i]) le 0 and Valuation(f[i]) ne -e do   
+        while Valuation(f[i]) le 0 and Valuation(f[i]) ne -e do  
+	    if IsWeaklyZero(f[i]) then
+		// Need more terms in q-expansion
+		return false, _;
+	    end if;
             m:=(-Valuation(f[i])) div e;
             if IsEven(m) then                
-                u:= x1[i]^(m div 2);
+                u:= x1[i]^(m div 2);	
                 c:=LeadingCoefficient(f[i])/LeadingCoefficient(u);
                 f[i]:=f[i]-c*u;  
                 phi0:=t + c*h[1]^(m div 2);
@@ -1453,10 +1472,10 @@ intrinsic FindRelationElliptic(M::Rec, f::SeqEnum) -> Any
     if &and [a in Rationals(): a in c] then
         L<x,y>:=FunctionField(M`C);
         Pol:=PolynomialRing(Rationals(),3);
-        return Evaluate(Pol!Numerator(phi0),[x,y,1])/Evaluate(Pol!Denominator(phi0),[x,y,1]);
+        return true, Evaluate(Pol!Numerator(phi0),[x,y,1])/Evaluate(Pol!Denominator(phi0),[x,y,1]);
     end if;
 
-    return phi;
+    return true, phi;
 end intrinsic;
 
 function FindMorphismBetweenModularCurves(M,M0,g)
@@ -1493,7 +1512,7 @@ function FindMorphismBetweenModularCurves(M,M0,g)
             JJ:=Evaluate(J,x/y);
             return [R!Numerator(JJ),R!Denominator(JJ)];
         elif M`genus eq 1 then
-            phi:=FindRelationElliptic(M,h);
+            _,phi:=FindRelationElliptic(M,h);
             phi:=ProjectiveRationalFunction(phi); 
             R<x,y,z>:=PolynomialRing(Rationals(),3);
             return [R!Numerator(phi),R!Denominator(phi)];
@@ -1534,8 +1553,8 @@ function FindMorphismBetweenModularCurves(M,M0,g)
 
     x2:=ConvertModularFormExpansions(M, M0, g^(-1), x1);
     y2:=ConvertModularFormExpansions(M, M0, g^(-1), y1);
-    phi1:=FindRelationElliptic(M,x2);
-    phi2:=FindRelationElliptic(M,y2);
+    _, phi1:=FindRelationElliptic(M,x2);
+    _, phi2:=FindRelationElliptic(M,y2);
     phi1:=ProjectiveRationalFunction(phi1); 
     phi2:=ProjectiveRationalFunction(phi2); 
 

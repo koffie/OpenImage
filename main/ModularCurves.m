@@ -896,25 +896,26 @@ intrinsic FindCanonicalModel(M::Rec, prec::RngIntElt) -> BoolElt, SeqEnum, SeqEn
     return true, psi, F; 
 end intrinsic;
 
-function FindModelOfXG(M, prec : compute_all:=true, G0:=1) 
-    /*  Input:       
-                M:      a record of type "ModularCurveRec" (for example produced as output of CreateModularCurveRec) that 
+intrinsic FindModelOfXG(M::Rec, prec::RngIntElt : compute_all:=true, G0:=1) -> Rec
+{}
+    /*  Input:
+                M:      a record of type "ModularCurveRec" (for example produced as output of CreateModularCurveRec) that
                         corresponds to a modular curve X_G.    We assume G has full determinant and contains -I.
-                prec:   a nonnegative integer.   The integer "prec" is used in the computation of modular forms.  A larger value will result in more terms of the 
-                        q-expansion being computed.  
-        Output: 
-                M is returned with the follow entries computed:        
-                    F0:  a sequence of n modular forms, in M_{k,G} for some even k, so that the morphism 
-                         X_G -> P^(n-1) described by F0 is defined over Q and gives an isomorphism between 
+                prec:   a nonnegative integer.   The integer "prec" is used in the computation of modular forms.  A larger value will result in more terms of the
+                        q-expansion being computed.
+        Output:
+                M is returned with the follow entries computed:
+                    F0:  a sequence of n modular forms, in M_{k,G} for some even k, so that the morphism
+                         X_G -> P^(n-1) described by F0 is defined over Q and gives an isomorphism between
                          X_G and a smooth projective curve X in P^(n-1)_Q.
                     psi: homogeneous polynomials in Q[x_1,..x_n] defining the curve X mentioned above.
-                    
+
                 If X_G has genus 0 or X_G has genus 1 and n le 5, we also compute
                     has_point:  true if and only if X_G has a Q-point.
                     has_infinitely_many_points:  true if and only if X_G has infinitely many Q-points
 
                 If X_G has genus 0 and has a Q-point, we also compute
-                    f:  a generators of the function field of X_G, i.e., Q(X_G)=Q(f); it is given by q-expansions 
+                    f:  a generators of the function field of X_G, i.e., Q(X_G)=Q(f); it is given by q-expansions
                         at the cusps
                     C:  the curve P^1_Q (note that f defines an isomorphism between X_G and C)
 
@@ -924,7 +925,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
                     C:  an elliptic curve over Q given by the Weierstrass equation that x and y satisfy.
 
                 When X_G has genus at most 1 and we have found a point, we also compute
-                    phiC:  a sequence of polynomials that defines an isomorphism X->C      
+                    phiC:  a sequence of polynomials that defines an isomorphism X->C
 
         If desired, the parameter G0 can be set to be a subgroup of GL(2,Z/N) so that G=M`G is a normal subgroup.  We then
         choose F0 so that the Q-vector space they span is acted on by G0.   This makes it easy to compute the automorphisms
@@ -938,7 +939,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
         P1<x,y>:=Curve(ProjectiveSpace(Rationals(),1));
         M`C:=P1;
         R<q>:=LaurentSeriesRing(Rationals());
-        M`f:=[jInvariant(q+O(q^Maximum(prec,120)))];  
+        M`f:=[jInvariant(q+O(q^Maximum(prec,120)))];
         return M;
     end if;
 
@@ -949,7 +950,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
         if flag then
             M`k:=2;
             M`F0:=F;
-            M`psi:=psi;  
+            M`psi:=psi;
             M`has_infinitely_many_points:=false;  // by Faltings
             return M;
         end if;
@@ -964,18 +965,18 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     print "Using weight ",k," with precision ",prec;
 
     // Compute modular forms of weight k.
-    M:=FindModularForms(k,M,prec);  
+    M:=FindModularForms(k,M,prec);
     cusps:=M`cusps;
 
     N:=M`N;
-    GL2:=GL(2,Integers(N)); 
-    SL2:=SL(2,Integers(N)); 
+    GL2:=GL(2,Integers(N));
+    SL2:=SL(2,Integers(N));
     G:=M`G;
 
     if Type(G0) ne GrpMat then
         G0:=G;  // If not set by user ahead of time
     else
-        N0:=gl2Level(G0); 
+        N0:=gl2Level(G0);
         assert N mod N0 eq 0;
         G0:=ChangeRing(G0,Integers(N0));
         G0:=gl2Lift(G0,N);
@@ -987,7 +988,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     if GL2![-1,0,0,-1] notin G  then  G :=sub<GL2|Generators(G)  join {GL2![-1,0,0,-1]}>;  end if;
     if GL2![-1,0,0,-1] notin G0 then  G0:=sub<GL2|Generators(G0) join {GL2![-1,0,0,-1]}>;  end if;
 
-    
+
     // Computes the action of (Z/NZ)^* on the cusps of X_G.  This corresponds to the action of Gal(Q(zeta_N)/Q) on the cusps.
     U,pi:=UnitGroup(Integers(N));
     s:={};
@@ -1011,7 +1012,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     S:=sub<SymmetricGroup(#M`cusps)|s>;
     ind:=[[i:i in O]: O in Orbits(S)];  // orbits of cusps under the actions of G0 and Gal_Q.
 
-    // We now compute a sequence "mult" of nonnegative integers that give the vanishing conditions 
+    // We now compute a sequence "mult" of nonnegative integers that give the vanishing conditions
     // we want to impose at the cusps.  It is chosen so the integers depend only on the Galois orbit of the cusps
     // and so that the degree of the the corresponding sheaf is at least 2*genus+1.   We try to choose our
     // integers so that the degree is minimal and so that we do not have to compute too many terms of the
@@ -1029,18 +1030,18 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
         rhs:=rhs cat [[m]];
         rel:=rel cat [[-1]];
     end for;
-    lhs:=Matrix(lhs);   
-    rhs:=Matrix(rhs); 
-    rel:=Matrix(rel); 
+    lhs:=Matrix(lhs);
+    rhs:=Matrix(rhs);
+    rel:=Matrix(rel);
     obj:=Matrix([[#ind[i]: i in [1..#ind]]]);
-    a:=MaximalSolution(lhs,rel,rhs,obj); 
-    mult:=[ a[1][ [j: j in [1..#ind] | i in ind[j]][1] ] : i in [1..#cusps] ];  
-    
+    a:=MaximalSolution(lhs,rel,rhs,obj);
+    mult:=[ a[1][ [j: j in [1..#ind] | i in ind[j]][1] ] : i in [1..#cusps] ];
+
     // We now impose vanishing conditions;  M`F0 will give the basis of modular forms that satisfy the conditions.
-    M:=FindModularFormsWithVanishingConditions(M,mult);    
+    M:=FindModularFormsWithVanishingConditions(M,mult);
     F:=M`F0;
-    
-    // Our model will lie in the following projective space.    
+
+    // Our model will lie in the following projective space.
     PP:=ProjectiveSpace(Rationals(),#F-1);
     Pol<[x]>:=PolynomialRing(Rationals(),#F);
 
@@ -1049,7 +1050,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     X0:=Scheme(PP,psi2);
     dim0:=Dimension(X0);
 
-    if dim0 lt 1 then 
+    if dim0 lt 1 then
         // Too many equations for model; need more terms of q-expansions to rule out more polynomials
         return FindModelOfXG(M, prec+15 :  compute_all:=compute_all, G0:=G0);  // try again with more precision!
     end if;
@@ -1057,7 +1058,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     deg:= degD - &+mult;
     assert deg ge 2*M`genus+1;
 
-    if deg ge 2*M`genus+2 then 
+    if deg ge 2*M`genus+2 then
         // In this case, we know our curve will be cut out by quadratics.
         psi:=psi2;
         X:=Curve(X0);
@@ -1068,17 +1069,17 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
         dim1:=Dimension(X1);
 
         // Too many equations for model; need more terms of q-expansions to rule out more polynomials.
-        if dim1 lt 1 then 
+        if dim1 lt 1 then
             return FindModelOfXG(M, prec+20 :  compute_all:=compute_all, G0:=G0);  // try again with more precision!
         end if;
 
         assert dim1 eq 1;
-        if dim0 eq 1 and IsIrreducible(X0) then 
-            psi:=psi2; 
-            X:=Curve(X0); 
-        else 
-            psi:=psi3; 
-            X:=Curve(X1); 
+        if dim0 eq 1 and IsIrreducible(X0) then
+            psi:=psi2;
+            X:=Curve(X0);
+        else
+            psi:=psi3;
+            X:=Curve(X1);
         end if;
     end if;
 
@@ -1093,7 +1094,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     // GENUS 0
     // When the curve has genus 0, we can check whether it is isomorphic to P^1_Q.
     if M`genus eq 0 then
-        C1,f1:= Conic(X);        
+        C1,f1:= Conic(X);
         b,p1:=HasRationalPoint(C1);
         M`has_point:=b;
         M`has_infinitely_many_points:=b;
@@ -1102,26 +1103,26 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
             // The modular curve is isomorphic to P^1_Q
             P1<x,y>:=Curve(ProjectiveSpace(Rationals(),1));
             f2:=Parametrization(C1,P1);    // f2: P1->C1
-            phi:=Expand(f2*Inverse(f1));   // isomorphism P1->X 
+            phi:=Expand(f2*Inverse(f1));   // isomorphism P1->X
 
             W:=DefiningEquations(Inverse(phi));
             W:=[Pol!w: w in W];
-		
+
             // We compute a hauptmodul, i.e., a function f that generates the function field of the modular curve over Q.
             ff:=[];
-            for j in [1..#M`cusps] do 
+            for j in [1..#M`cusps] do
 		        a:=[f[j]: f in F];
 	        	hh:=[Evaluate(w,a): w in W];
-                if IsWeaklyZero(hh[2]) then                
+                if IsWeaklyZero(hh[2]) then
                     return FindModelOfXG(M, prec+10 : compute_all:=compute_all, G0:=G0);  // start over with more precision
                 end if;
 		        h:=hh[1]/hh[2];
-	        	ff:=ff cat [h];                
+	        	ff:=ff cat [h];
 	        end for;
-            M`f:=ff; 
-            M`C:=P1;    
+            M`f:=ff;
+            M`C:=P1;
 
-            //M`phiC:=W;        
+            //M`phiC:=W;
         end if;
         return M;
     end if;
@@ -1129,7 +1130,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     // GENUS 1
     // When the curve has genus 1, we can try to check whether it has rational points or not,
     if M`genus eq 1 then
-            
+
         pts:=PointSearch(X,1000);  // look for points of low height first
         if #pts ne 0 then
             _,i:=Minimum([HeightOnAmbient(P): P in pts]);
@@ -1139,22 +1140,22 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
 
         if not assigned M`has_point then
             n:=#F;
-            if n ge 6 then 
+            if n ge 6 then
                 // Magma can only recongnize genus one curves of degree at most 5.
                 return M;
             end if;
-            assert Degree(X) eq n and n le 5; 
+            assert Degree(X) eq n and n le 5;
 
             // When n is at most 5, Magma has functionality to work with the model of our genus 1 modular curve.
-            C:=GenusOneModel(X); 
+            C:=GenusOneModel(X);
             if not IsLocallySoluble(C) then
                 M`has_point:=false;
                 M`has_infinitely_many_points:=false;
                 return M;
             end if;
 
-		    C1,E,maptoE:=nCovering(C); 
-            // This is a degree n^2 cover C->E and E is isomorphic to the Jacobian of C; 
+		    C1,E,maptoE:=nCovering(C);
+            // This is a degree n^2 cover C->E and E is isomorphic to the Jacobian of C;
             // it is a twist of multiplication by n map E->E.
             // In particular, if C has a rational point, then the image of C(Q) in E will be a coset of nE(Q).
 
@@ -1164,7 +1165,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
 		    if r eq 0 then
 			    // C has finitely many points which we can find
 		        pts:={};
-    		    for a in A do 
+    		    for a in A do
     			    preimage := Pullback(maptoE, f(a));
         		    pts:=pts join {p: p in Points(preimage)};
 		        end for;
@@ -1178,20 +1179,20 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
 			        preimage := Pullback(maptoE, P);
 			        pts:=pts join {p: p in Points(preimage)};
 			        if #pts ge 1 then break q; end if;
-		        end for;                    
+		        end for;
         	    M`has_point:=#pts ge 1;
 		    end if;
 
             if M`has_point eq false then return M; end if;
 
             assert #pts ne 0;
-            pts:=[P:P in pts];            
+            pts:=[P:P in pts];
             _,i:=Minimum([HeightOnAmbient(P): P in pts]);
 
 
-            p0:=Eltseq(pts[i]);         
+            p0:=Eltseq(pts[i]);
             p0:=[Rationals()!a: a in p0];
-            P0:=X!p0;        
+            P0:=X!p0;
         end if;
 
         // Our genus 1 curve X has a Q-point P0.
@@ -1209,22 +1210,22 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
         end if;
         x:=[c[1][j]/c[3][j]: j in [1..#M`cusps]];
         y:=[c[2][j]/c[3][j]: j in [1..#M`cusps]];
- 
+
         M`f:=[x,y];
         M`C:=E;
 
         M`has_infinitely_many_points:=Rank(E) ge 1;
-        
+
         r:=Rank(Parent(W[1]));
         Pol<[x]>:=PolynomialRing(Rationals(),r);
         //M`phiC:=[Pol!a: a in W];
     end if;
 
-    return M;  
-end function;
+    return M;
+end intrinsic;
 
-/* 
-   The follow sequence consists of all pairs [N,i] where N and i are the level and index, respectively, of 
+/*
+   The follow sequence consists of all pairs [N,i] where N and i are the level and index, respectively, of
    all congruence subgroups of PSL_2(Z) of genus 0 or 1.  This follows from the work of Cummin and Pauli; 
    Using their code, type: load "csg1-lev48.dat"; {[a`level,a`index]: a in L};
  */

@@ -896,40 +896,41 @@ intrinsic FindCanonicalModel(M::Rec, prec::RngIntElt) -> BoolElt, SeqEnum, SeqEn
     return true, psi, F; 
 end intrinsic;
 
-function FindModelOfXG(M, prec : compute_all:=true, G0:=1) 
-    /*  Input:       
-                M:      a record of type "ModularCurveRec" (for example produced as output of CreateModularCurveRec) that 
+intrinsic FindModelOfXG(M::Rec, prec::RngIntElt : compute_all:=true, G0:=1) -> Rec
+{
+    Input:
+            M:      a record of type ModularCurveRec (for example produced as output of CreateModularCurveRec) that
                         corresponds to a modular curve X_G.    We assume G has full determinant and contains -I.
-                prec:   a nonnegative integer.   The integer "prec" is used in the computation of modular forms.  A larger value will result in more terms of the 
+            prec:   a nonnegative integer.   The integer "prec" is used in the computation of modular forms.  A larger value will result in more terms of the
                         q-expansion being computed.  
-        Output: 
-                M is returned with the follow entries computed:        
-                    F0:  a sequence of n modular forms, in M_{k,G} for some even k, so that the morphism 
-                         X_G -> P^(n-1) described by F0 is defined over Q and gives an isomorphism between 
-                         X_G and a smooth projective curve X in P^(n-1)_Q.
-                    psi: homogeneous polynomials in Q[x_1,..x_n] defining the curve X mentioned above.
-                    
-                If X_G has genus 0 or X_G has genus 1 and n le 5, we also compute
-                    has_point:  true if and only if X_G has a Q-point.
-                    has_infinitely_many_points:  true if and only if X_G has infinitely many Q-points
+    Output:
+            M is returned with the follow entries computed:
+                F0:  a sequence of n modular forms, in M_(k,G) for some even k, so that the morphism
+                     X_G -> P^(n-1) described by F0 is defined over Q and gives an isomorphism between
+                     X_G and a smooth projective curve X in P^(n-1)_Q.
+                psi: homogeneous polynomials in Q[x_1,..x_n] defining the curve X mentioned above.
 
-                If X_G has genus 0 and has a Q-point, we also compute
-                    f:  a generators of the function field of X_G, i.e., Q(X_G)=Q(f); it is given by q-expansions 
-                        at the cusps
-                    C:  the curve P^1_Q (note that f defines an isomorphism between X_G and C)
+            If X_G has genus 0 or X_G has genus 1 and n le 5, we also compute
+                has_point:  true if and only if X_G has a Q-point.
+                has_infinitely_many_points:  true if and only if X_G has infinitely many Q-points
 
-                If X_G has genus 1, n le 5, and X_G has a Q-point, we also compute
-                    f=[x,y]:  we have Q(X_G)=Q(x,y), where x and y satisfy a Weierstrass equation; they
-                              are given by q-expansions at the cusps.
-                    C:  an elliptic curve over Q given by the Weierstrass equation that x and y satisfy.
+            If X_G has genus 0 and has a Q-point, we also compute
+                f:  a generators of the function field of X_G, i.e., Q(X_G)=Q(f); it is given by q-expansions
+                    at the cusps
+                C:  the curve P^1_Q (note that f defines an isomorphism between X_G and C)
 
-                When X_G has genus at most 1 and we have found a point, we also compute
-                    phiC:  a sequence of polynomials that defines an isomorphism X->C      
+            If X_G has genus 1, n le 5, and X_G has a Q-point, we also compute
+                f=[x,y]:  we have Q(X_G)=Q(x,y), where x and y satisfy a Weierstrass equation; they
+                          are given by q-expansions at the cusps.
+                C:  an elliptic curve over Q given by the Weierstrass equation that x and y satisfy.
 
-        If desired, the parameter G0 can be set to be a subgroup of GL(2,Z/N) so that G=M`G is a normal subgroup.  We then
-        choose F0 so that the Q-vector space they span is acted on by G0.   This makes it easy to compute the automorphisms
-        of our curve coming from G0/G.
-    */
+            When X_G has genus at most 1 and we have found a point, we also compute
+                phiC:  a sequence of polynomials that defines an isomorphism X->C
+
+    If desired, the parameter G0 can be set to be a subgroup of GL(2,Z/N) so that G=M`G is a normal subgroup.  We then
+    choose F0 so that the Q-vector space they span is acted on by G0.   This makes it easy to compute the automorphisms
+    of our curve coming from G0/G.
+}
 
     // The j-line can be dealt with directly
     if M`degree eq 1 then
@@ -1221,7 +1222,7 @@ function FindModelOfXG(M, prec : compute_all:=true, G0:=1)
     end if;
 
     return M;  
-end function;
+end intrinsic;
 
 /* 
    The follow sequence consists of all pairs [N,i] where N and i are the level and index, respectively, of 

@@ -610,7 +610,6 @@ function FindAgreeableClosure(Z,j :bound:=80, Bound:=10^7, minimal:=true, assume
         longer requires factoring integers.
     */
     X := Z["X"];
-    ExceptionalImages := Z["ExceptionalImage"];
     ExceptionalAgreeableClosures := Z["ExceptionalAgreeableClosures"];
     agreeable_groups_prime_power_level := Z["agreeable_groups_prime_power_level"];
     unentangled_groups := Z["unentangled_groups"];

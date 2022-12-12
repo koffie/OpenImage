@@ -1629,7 +1629,8 @@ end function;
 
 
 intrinsic FindOpenImage(Z::Assoc, E::CrvEll[FldRat] : Bound:=10^8, find_level:=true, dual:=false) -> GrpMat[RngIntRes], RngIntElt, GrpMat[RngIntRes]
-{ Returns the image G of the adelic Galois representation of E as a subgroup of GL(2,Z/NZ) with N minimal (G is the full inverse image of this subgroup), the index of G in GL(2,Zhat), and the intersection of G with SL(2,Zhat) as a subgroup of SL(2,Z/MZ) with M minimal. } 
+{ Returns the image G of the adelic Galois representation of E as a subgroup of GL(2,Z/NZ) with N minimal (G is the full inverse image of this subgroup), the index of G in GL(2,Zhat), and the intersection of G with SL(2,Zhat) as a subgroup of SL(2,Z/MZ) with M minimal.
+  The parameter Z should be the value returned by OpenImageContext (it contains precomputed data the is needed by FindOpenImage). }
     /*
         Input:  E is a non-CM elliptic curve defined over Q.
 

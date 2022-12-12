@@ -38,7 +38,7 @@ for p in trace_primes do
 end for;
 
 intrinsic OpenImageContext(datadir::MonStgElt) -> Assoc
-{ Loads precomputed data from the specified directoyr that can be used to compute adelic images of non-CM elliptic curves over Q. }
+{ Loads precomputed data from the specified directoyr that can be used to compute adelic images of non-CM elliptic curves over Q.  If mypath is the path to where you cloned the OpenImage GitHub repo, you can specify mypath/data-files for datadir. }
     if datadir[#datadir] ne "/" then datadir cat:= "/"; end if;
     I:=Open(datadir cat "agreeable.dat", "r"); 
     X:=AssociativeArray();

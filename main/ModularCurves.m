@@ -312,11 +312,12 @@ function EisensteinFormsWeight1(N, prec)
     return E;
 end function;
 
-function ConvertModularFormExpansions(M, M0, gamma, F : wt:=0);
+intrinsic ConvertModularFormExpansions(M::Rec, M0::Rec, gamma::Any, F::SeqEnum : wt:=0) -> SeqEnum
+{}
  /*
     Input:
         M, M0   : modular curves corresponding to X_G and X_{G0}, respectively, where G0 is a subgroup of GL(2,Z/N0) with full determinant.
-        gamma   : a matrix in GL(2,Z/N0)
+        gamma   : something convertable to a matrix in GL(2,Z/N0)
         F       : a (weakly) modular form on X_{G0}; it is a sequence consisting of its q-expansion at the cusps of X_{G0} (using M0`cusps).
                   We assume the coefficients of the expansions are in Q(zeta_N0).
         wt      : the weight of F (though we only use the value of wt modulo 2).
@@ -393,7 +394,7 @@ function ConvertModularFormExpansions(M, M0, gamma, F : wt:=0);
     end for;
 
     return Fnew;
-end function;
+end intrinsic;
 
 function SimplifyModularFormBasis(M,F)
     /*  Input:
@@ -794,7 +795,7 @@ intrinsic FindRelations(F::SeqEnum,d::RngIntElt) -> SeqEnum
             B[j]:=B[j] cat &cat[Eltseq(Coefficient(C[j],n)): n in [1..m-1]];
         end for;
     end for;
-    B:=ChangeRing(Matrix(B),Integers());
+    B:=ChangeRing(Matrix(B),Rationals());
     L:=Kernel(B);
 
     L:=Matrix(Basis(L));

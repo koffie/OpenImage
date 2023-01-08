@@ -281,33 +281,33 @@ function EisensteinFormsWeight1(N, prec)
        For the definition of the Eisenstein series see section 2 of "Fourier expansion at cusps" by Brunault and Neururer.
        Remark: the extra factor of 2N ensures that all the coefficients are integral.
  */
-    ZN:=Integers(N);
-    M:=RSpace(ZN,2);
-    K<z>:=CyclotomicField(N);
-    OK:=RingOfIntegers(K);
-    zeta:=OK!z;
-    R<qN>:=PowerSeriesRing(OK);
+    ZN := Integers(N);
+    M := RSpace(ZN,2);
+    K<z> := CyclotomicField(N);
+    OK := RingOfIntegers(K);
+    zeta := OK!z;
+    zetapows := [zeta^i : i in [0..N-1]];
+    R<qN> := PowerSeriesRing(OK);
 
-    E:=AssociativeArray();
-    for alpha in M do
-        a:=alpha[1]; aa:=Integers()!a;
-        b:=alpha[2]; bb:=Integers()!b;
-        e:=O(qN^(prec));
-        for n in [1..(prec-1)] do
-        for m in [1..(prec-1) div n] do
-            if ZN!m eq a then
-                e:= e + zeta^( bb*n) * qN^(m*n);
-            end if;
-            if ZN!m eq -a then
-                e:= e - zeta^(-bb*n) * qN^(m*n);
-            end if;
+    E := AssociativeArray();
+    for b in [0..N-1] do
+        for a in [0..N-1] do
+            e := O(qN^prec);
+            mstart := (a eq 0) select N else a;
+            for n in [1..(prec-1)] do
+                for m in [mstart..((prec-1) div n) by N] do
+                    e +:= zetapows[1+(b*n mod N)] * qN^(m*n); // zeta^(b*n)
+                end for;
+                for m in [N-a..((prec-1) div n) by N] do
+                    e -:= zetapows[1+(-b*n mod N)] * qN^(m*n); // zeta^(-b*n)
+                end for;
+            end for;
+            e *:= 2*N;  // scale by factor of 2N
+            // Add appropriate constant term.
+            if a eq 0 and b ne 0 then e +:= OK!( N*(1+zeta^(b))/(1-zeta^(b)) ); end if;
+            if a ne 0 then e +:= N-2*a; end if;
+            E[M![a,b]] := e;
         end for;
-        end for;
-        e:=2*N*e;  // scale by factor of 2N
-        // Add appropriate constant term.
-        if a eq 0 and b ne 0 then  e:=e + OK!( N*(1+zeta^(bb))/(1-zeta^(bb)) ); end if;
-        if a ne 0 then e:=e + N-2*aa; end if;
-        E[M![a,b]]:=e;
     end for;
     return E;
 end function;
@@ -580,7 +580,8 @@ intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
         for i in [1..#cusps] do
             f0:=[];
             for g in R do
-                f:=&+[ &*[E[a[e]*g*cusps[i]*h]:e in [1..k]] : h in RR[i]  ];
+                f:=&+[ &*[E[a[e]*tmp2]:e in [1..k]] where tmp2:=tmp1*h : h in RR[i]  ] where tmp1:=g*cusps[i];
+                //f:=&+[ &*[E[a[e]*g*cusps[i]*h]:e in [1..k]] : h in RR[i]  ];
                 e:=N div M`widths[i];
                 f:=#U[i] * &+[Coefficient(f,e*j)*qN^(e*j) : j in [0..(Prec-1) div e]] + O(qN^Prec);
                 f0:= f0 cat [f];

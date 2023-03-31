@@ -615,7 +615,12 @@ intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
 
     // Give the matrix B, we now convert its rows into modular forms given by the q-expansions at all the cusps.
     RR<qN>:=PowerSeriesRing(KN);
-    FF:=[];
+    ephi := EulerPhi(N);
+    BRows := [Eltseq(b0) : b0 in Rows(B)];
+    FF := [[elt<RR | [elt<KN | BRows[i][(Prec*e+j)*ephi+1..(Prec*e+j)*ephi+ephi]> : j in [0..Prec-1]]> + O(qN^Prec) : e in [0..#cusps-1]] : i in [1..#BRows]];
+    /*
+    // Older, slow code
+    FF2:=[];
     for b0 in Rows(B) do
         b:=Eltseq(b0);
         ff:=[];
@@ -627,9 +632,11 @@ intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
             end for;
             ff:=ff cat [f];
         end for;
-        FF:=FF cat [ff];
+        FF2:=FF2 cat [ff];
     end for;
-    FF:=[[RR!f:f in ff]: ff in FF];
+    FF2:=[[RR!f:f in ff]: ff in FF2];
+    assert FF eq FF2;
+    */
 
     // We can slightly improve the precision of our modular forms by taking weights into account.
     FF0:=[];

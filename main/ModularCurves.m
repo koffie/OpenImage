@@ -281,42 +281,43 @@ function EisensteinFormsWeight1(N, prec)
        For the definition of the Eisenstein series see section 2 of "Fourier expansion at cusps" by Brunault and Neururer.
        Remark: the extra factor of 2N ensures that all the coefficients are integral.
  */
-    ZN:=Integers(N);
-    M:=RSpace(ZN,2);
-    K<z>:=CyclotomicField(N);
-    OK:=RingOfIntegers(K);
-    zeta:=OK!z;
-    R<qN>:=PowerSeriesRing(OK);
+    ZN := Integers(N);
+    M := RSpace(ZN,2);
+    K<z> := CyclotomicField(N);
+    OK := RingOfIntegers(K);
+    zeta := OK!z;
+    zetapows := [zeta^i : i in [0..N-1]];
+    R<qN> := PowerSeriesRing(OK);
 
-    E:=AssociativeArray();
-    for alpha in M do
-        a:=alpha[1]; aa:=Integers()!a;
-        b:=alpha[2]; bb:=Integers()!b;
-        e:=O(qN^(prec));
-        for n in [1..(prec-1)] do
-        for m in [1..(prec-1) div n] do
-            if ZN!m eq a then
-                e:= e + zeta^( bb*n) * qN^(m*n);
-            end if;
-            if ZN!m eq -a then
-                e:= e - zeta^(-bb*n) * qN^(m*n);
-            end if;
+    E := AssociativeArray();
+    for b in [0..N-1] do
+        for a in [0..N-1] do
+            e := O(qN^prec);
+            mstart := (a eq 0) select N else a;
+            for n in [1..(prec-1)] do
+                for m in [mstart..((prec-1) div n) by N] do
+                    e +:= zetapows[1+(b*n mod N)] * qN^(m*n); // zeta^(b*n)
+                end for;
+                for m in [N-a..((prec-1) div n) by N] do
+                    e -:= zetapows[1+(-b*n mod N)] * qN^(m*n); // zeta^(-b*n)
+                end for;
+            end for;
+            e *:= 2*N;  // scale by factor of 2N
+            // Add appropriate constant term.
+            if a eq 0 and b ne 0 then e +:= OK!( N*(1+zeta^(b))/(1-zeta^(b)) ); end if;
+            if a ne 0 then e +:= N-2*a; end if;
+            E[M![a,b]] := e;
         end for;
-        end for;
-        e:=2*N*e;  // scale by factor of 2N
-        // Add appropriate constant term.
-        if a eq 0 and b ne 0 then  e:=e + OK!( N*(1+zeta^(bb))/(1-zeta^(bb)) ); end if;
-        if a ne 0 then e:=e + N-2*aa; end if;
-        E[M![a,b]]:=e;
     end for;
     return E;
 end function;
 
-function ConvertModularFormExpansions(M, M0, gamma, F : wt:=0);
+intrinsic ConvertModularFormExpansions(M::Rec, M0::Rec, gamma::Any, F::SeqEnum : wt:=0) -> SeqEnum
+{}
  /*
     Input:
         M, M0   : modular curves corresponding to X_G and X_{G0}, respectively, where G0 is a subgroup of GL(2,Z/N0) with full determinant.
-        gamma   : a matrix in GL(2,Z/N0)
+        gamma   : something convertable to a matrix in GL(2,Z/N0)
         F       : a (weakly) modular form on X_{G0}; it is a sequence consisting of its q-expansion at the cusps of X_{G0} (using M0`cusps).
                   We assume the coefficients of the expansions are in Q(zeta_N0).
         wt      : the weight of F (though we only use the value of wt modulo 2).
@@ -393,7 +394,7 @@ function ConvertModularFormExpansions(M, M0, gamma, F : wt:=0);
     end for;
 
     return Fnew;
-end function;
+end intrinsic;
 
 function SimplifyModularFormBasis(M,F)
     /*  Input:
@@ -579,7 +580,8 @@ intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
         for i in [1..#cusps] do
             f0:=[];
             for g in R do
-                f:=&+[ &*[E[a[e]*g*cusps[i]*h]:e in [1..k]] : h in RR[i]  ];
+                f:=&+[ &*[E[a[e]*tmp2]:e in [1..k]] where tmp2:=tmp1*h : h in RR[i]  ] where tmp1:=g*cusps[i];
+                //f:=&+[ &*[E[a[e]*g*cusps[i]*h]:e in [1..k]] : h in RR[i]  ];
                 e:=N div M`widths[i];
                 f:=#U[i] * &+[Coefficient(f,e*j)*qN^(e*j) : j in [0..(Prec-1) div e]] + O(qN^Prec);
                 f0:= f0 cat [f];
@@ -613,7 +615,12 @@ intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
 
     // Give the matrix B, we now convert its rows into modular forms given by the q-expansions at all the cusps.
     RR<qN>:=PowerSeriesRing(KN);
-    FF:=[];
+    ephi := EulerPhi(N);
+    BRows := [Eltseq(b0) : b0 in Rows(B)];
+    FF := [[elt<RR | [elt<KN | BRows[i][(Prec*e+j)*ephi+1..(Prec*e+j)*ephi+ephi]> : j in [0..Prec-1]]> + O(qN^Prec) : e in [0..#cusps-1]] : i in [1..#BRows]];
+    /*
+    // Older, slow code
+    FF2:=[];
     for b0 in Rows(B) do
         b:=Eltseq(b0);
         ff:=[];
@@ -625,9 +632,11 @@ intrinsic FindModularForms(k::RngIntElt, M::Rec, prec::RngIntElt) -> Rec
             end for;
             ff:=ff cat [f];
         end for;
-        FF:=FF cat [ff];
+        FF2:=FF2 cat [ff];
     end for;
-    FF:=[[RR!f:f in ff]: ff in FF];
+    FF2:=[[RR!f:f in ff]: ff in FF2];
+    assert FF eq FF2;
+    */
 
     // We can slightly improve the precision of our modular forms by taking weights into account.
     FF0:=[];
@@ -794,7 +803,7 @@ intrinsic FindRelations(F::SeqEnum,d::RngIntElt) -> SeqEnum
             B[j]:=B[j] cat &cat[Eltseq(Coefficient(C[j],n)): n in [1..m-1]];
         end for;
     end for;
-    B:=ChangeRing(Matrix(B),Integers());
+    B:=ChangeRing(Matrix(B),Rationals());
     L:=Kernel(B);
 
     L:=Matrix(Basis(L));

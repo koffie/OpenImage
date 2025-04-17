@@ -4,10 +4,10 @@
 // This file contains various utility functions for computing invariants of subgroups of GL(Z/NZ)
 
 // Given a subgroup H of GL(2,Z/nZ), computes the index of det(H) in (Z/nZ)*
-function GL2DetIndex(H)
-    M,pi:=MultiplicativeGroup(BaseRing(H));
-    return Index(M,sub<M|[Inverse(pi)(Determinant(h)):h in Generators(H)]>);
-end function;
+//function GL2DetIndex(H)
+//    M,pi:=MultiplicativeGroup(BaseRing(H));
+//    return Index(M,sub<M|[Inverse(pi)(Determinant(h)):h in Generators(H)]>);
+//end function;
 
 // Compute the abelian group invariants of a Z/nZ-submodule of Z/nZ x Z/nZ (which Magma apparently doesn't now is an abelian group)
 function GL2ModuleInvariants(V)

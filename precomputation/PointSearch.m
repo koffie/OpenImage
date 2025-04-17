@@ -1,6 +1,15 @@
-
-load "../main/FindOpenImage.m";
-
+// Load modular curves from "agreeable.dat" into associative array X.
+I:=Open("../data-files/agreeable.dat", "r");
+X:=AssociativeArray();
+repeat
+	b,y:=ReadObjectCheck(I);
+	if b then
+		X[y`key]:=y;
+	end if;
+until not b;
+for k in Keys(X) do
+    X[k]`map_to_jline:=[* MapTojLine(X,k) *];
+end for;
 
 // j-invariants of CM elliptic curves E/Q
 CM_jInvariants:={0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -32768, -884736, -884736000, -147197952000, -262537412640768000};

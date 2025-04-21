@@ -12,9 +12,7 @@
 
 */
 
-load "../main/GL2GroupTheory.m";        
-load "../main/ModularCurves.m";
-
+AttachSpec("../OpenImage.spec");
 
 I:=Open("../data-files/agreeable.dat", "r");
 X:=AssociativeArray();

@@ -23,9 +23,6 @@
         the label for G will be k with a unique positive integer adjoined to the end.
 */
 
-load "../main/GL2GroupTheory.m";        
-load "../main/ModularCurves.m";
-
 
 // Load modular curves from "agreeable.dat" into associative array X.
 I:=Open("../data-files/agreeable.dat", "r");

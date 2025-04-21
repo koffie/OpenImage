@@ -28,10 +28,6 @@ We update the file "agreeable.dat" afterwards.
 */
 
 
-
-load "../main/GL2GroupTheory.m";        
-load "../main/ModularCurves.m";
-
 load "../data-files/cyclic_invariant_polynomials.m"; 
 
 I:=Open("../data-files/agreeable.dat", "r");

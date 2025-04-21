@@ -8,8 +8,7 @@
     We save the updated associative array to the file "agreeable.dat".
 */
 
-load "../main/GL2GroupTheory.m";        
-load "../main/ModularCurves.m";
+AttachSpec("../OpenImage.spec");
 
 // Load limbs
 I:=Open("../data-files/agreeable.dat", "r");

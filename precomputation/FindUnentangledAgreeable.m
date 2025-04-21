@@ -9,10 +9,6 @@
         associative array X which we save to file "unentangled.dat".
     */
     
-    load "../main/GL2GroupTheory.m";        
-    load "../main/ModularCurves.m";
-    
-
     load "../SZ-data/GL2Invariants.m";         // Utility functions for working with subgroups of GL(2,Z/NZ)
     load "../SZ-data/RationalFunctions.m";     // Used to perform Cauchy interpolation of rational functions
     load "../SZ-data/JacobianRank.m";  // contains JacobianOfXG, used to determine genus one groups G for which Jac(X_G) has positive rank

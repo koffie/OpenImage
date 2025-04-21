@@ -1,5 +1,4 @@
-load "../main/GL2GroupTheory.m";        
-load "../main/ModularCurves.m";
+AttachSpec("../OpenImage.spec");
 load "../data-files/cyclic_invariant_polynomials.m";  
 
 

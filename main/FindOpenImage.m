@@ -576,8 +576,8 @@ end function;
 
 
 
-function FindAgreeableClosure(Z,j :bound:=80, Bound:=10^7, minimal:=true, assume_uniformity_conjecture:=false, use_exceptional_data:=true)
-    /*
+intrinsic FindAgreeableClosure(Z::Assoc,j::FldRatElt :bound:=80, Bound:=10^7, minimal:=true, assume_uniformity_conjecture:=false, use_exceptional_data:=true) -> BoolElt, SeqEnum, GrpMat
+{
         Input: 
             j: the j-invariant of a non-CM elliptic curve E/Q.
 
@@ -605,10 +605,10 @@ function FindAgreeableClosure(Z,j :bound:=80, Bound:=10^7, minimal:=true, assume
         The quantity "Bound" bounds the primes we use to rule out rational points over j on some of the higher genus modular curves of
         prime power level from the paper of Rouse-Sutherland-(Zurieck-Brown).   The function will halt if it can not rule out such points.
 
-        If "assume_uniformity_conjecture" is set to true, we assume that the subgroup rho_{E,ell}(Gal_Q) of GL(2,Z/ell) is not contained 
+        If "assume_uniformity_conjecture" is set to true, we assume that the subgroup rho_E,ell(Gal_Q) of GL(2,Z/ell) is not contained 
         in the normalizer of a nonsplit Cartan for all primes ell>13.   This can significantly speed up the computation since it will no
         longer requires factoring integers.
-    */
+}
     X := Z["X"];
     ExceptionalAgreeableClosures := Z["ExceptionalAgreeableClosures"];
     agreeable_groups_prime_power_level := Z["agreeable_groups_prime_power_level"];
@@ -1141,7 +1141,7 @@ function FindAgreeableClosure(Z,j :bound:=80, Bound:=10^7, minimal:=true, assume
     assert S ne {};
     
     return true, k, S;
-end function;
+end intrinsic;
 
 
 function ComputeGammaE(Z,k,u,E)
